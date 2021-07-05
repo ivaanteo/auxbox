@@ -47,7 +47,7 @@ class QueueViewController: UIViewController{
         -0.475 * view.frame.width
     }
     @objc func queueButtonTapped(sender: UIButton!){
-        guard let auxCode = DatabaseManager.user?.joinedRoom else {return}
+        guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {displayAlert(text: "Please connect to a room first!", delay: 1); return}
         if auxCode != ""{
             guard let uri = song?.uri else {return}
             DatabaseManager.shared.updateRoomToQueue(uri: uri){text in

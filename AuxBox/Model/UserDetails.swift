@@ -10,8 +10,9 @@ import Foundation
 struct UserDetails : Codable {
     var name: String?
     var email: String?
-    var profilePictureURL: URL?
+    var profilePictureURL: String?
     var auxCode: String?
     var joinedRoom: String?
+    var credits: Int
     // connected to: -- can connect to own auxcode
 }

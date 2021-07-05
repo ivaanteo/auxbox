@@ -10,7 +10,6 @@ import UIKit
 class NowPlayingSubview:UIView{
     var song : SongDetails? {
         didSet {
-            print("didSetSong")
             if let imgURL = song?.image{
 //                if let url = URL(string: imgURL){
 //                    if let data = try? Data(contentsOf: url){
@@ -32,9 +31,7 @@ class NowPlayingSubview:UIView{
     }
     var songsInQueue:Int?{
         didSet{
-            print("didSetSongsInQueue")
             if songsInQueue == 0{
-                print("songsInQueue is 0")
                 inQueueLabel.text = "No Songs in Queue"
             }else{
                 inQueueLabel.text = (self.songsInQueue==1) ? "1 Song in Queue" : "\(self.songsInQueue!) Songs in Queue "

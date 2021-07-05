@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreLocation
 
 class CreatedViewController: UIViewController{
     var roomNameDesc:String?
@@ -32,17 +33,25 @@ class CreatedViewController: UIViewController{
             return (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.appRemote
         }
     }
+    var locationManager: CLLocationManager {
+        get{
+            return (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)!.locationManager
+        }
+    }
     
     @objc func continueTapped(sender: UIButton!){
         self.dismiss(animated: true, completion: nil)
     }
     @objc func endSessionTapped(sender: UIButton!){
+        // pause music
+        appRemote?.playerAPI?.pause()
         // delete room
         DatabaseManager.shared.deleteActiveRoom()
         // update user
         DatabaseManager.shared.deleteJoinedRoom()
-//        let appRemote = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)!.appRemote
         appRemote?.disconnect()
+        locationManager.stopUpdatingLocation()
+//        locationManager.stopMonitoringSignificantLocationChanges()
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -57,7 +66,7 @@ class CreatedViewController: UIViewController{
         roomNameDescLabel.setupLabel(displayText: roomNameDesc!, fontSize: 28)
         auxCodeLabel.setupLabel(displayText: "Aux code", fontSize: 22)
         
-        auxCodeDescLabel.setupLabel(displayText: DatabaseManager.user?.auxCode ?? "nil", fontSize: 28)
+        auxCodeDescLabel.setupLabel(displayText: DatabaseManager.shared.user?.auxCode ?? "nil", fontSize: 28)
         titleText.setupLabel(displayText: "Let's get this party going!", fontSize: 36)
         
         setupStackView(roomStackView, headerLabel: roomNameLabel, descLabel: roomNameDescLabel)

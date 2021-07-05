@@ -21,6 +21,7 @@ class NowPlayingViewController: UIViewController {
     var roomName: String?{
         didSet{
             roomNameLabel.text = roomName
+            
         }
     }
     
@@ -66,16 +67,12 @@ class NowPlayingViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(CurrentQueueCell.self, forCellReuseIdentifier: "currentQueueCell")
         tableView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-//        tableView.layer.cornerRadius = 20
         tableView.widthAnchor.constraint(equalToConstant: view.frame.width).isActive = true
-//        tableView.heightAnchor.constraint(equalToConstant: view.frame.width).isActive = true
-        //        tableView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
-        
-//        tableView.contentInset = UIEdgeInsets(top: 20, left: 1, bottom: 20, right: 1)
         tableView.isScrollEnabled = false
 
+        
         
 //        scrollView.backgroundColor = .green
         view.addSubview(scrollView)
@@ -146,11 +143,11 @@ class NowPlayingViewController: UIViewController {
     
     func updateUI(){
         DispatchQueue.main.async {
-            self.songNameLabel.text = DatabaseManager.roomDetails?.nowPlaying.songName ?? "Nothing's Playing"
-            self.songArtistLabel.text = DatabaseManager.roomDetails?.nowPlaying.artist ?? "-"
-            self.roomNameLabel.text = DatabaseManager.roomDetails?.roomName ?? "Unplugged"
+            self.songNameLabel.text = DatabaseManager.shared.roomDetails?.nowPlaying.songName ?? "Nothing's Playing"
+            self.songArtistLabel.text = DatabaseManager.shared.roomDetails?.nowPlaying.artist ?? "-"
+            self.roomNameLabel.text = DatabaseManager.shared.roomDetails?.roomName ?? "Unplugged"
         }
-        SpotifyAuthManager.shared.downloadImage(from: DatabaseManager.roomDetails?.nowPlaying.image ?? "") { (image) in
+        SpotifyAuthManager.shared.downloadImage(from: DatabaseManager.shared.roomDetails?.nowPlaying.image ?? "") { (image) in
             DispatchQueue.main.async {
                 self.songImage.image = image
             }
@@ -174,7 +171,7 @@ class NowPlayingViewController: UIViewController {
 //                self.songImage.image = UIImage(systemName: "music.mic")
 //            }
 //        }
-        currentQueue = DatabaseManager.roomDetails?.currentQueue ?? []
+        currentQueue = DatabaseManager.shared.roomDetails?.currentQueue ?? []
 //        if currentQueue != []{
 //            for uri in currentQueue!{
 //                SpotifyAuthManager.shared.getSongDetails(trackURI: uri) { res in
@@ -313,8 +310,9 @@ extension NowPlayingViewController:UITableViewDataSource{
         return 65
     }
 }
+
 class SelfSizingTableView: UITableView {
-    var minHeight : CGFloat = 400
+    var minHeight : CGFloat = 450
 
     override var contentSize: CGSize {
         didSet {

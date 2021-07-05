@@ -7,7 +7,7 @@
 
 import UIKit
 
-struct SongDetails : Codable{
+struct SongDetails: Codable{
     // this is actually my viewModel
     var songName:String
     var artist:String

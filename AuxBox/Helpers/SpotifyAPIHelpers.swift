@@ -7,7 +7,7 @@
 
 import Foundation
 
-class SpotifyAPI{
+struct SpotifyAPI{
     static let accountURL = "https://accounts.spotify.com/"
     static let baseURL = "https://api.spotify.com/v1/"
     static let clientID = "674cd699c32e453ca39240861f9b2a3f"
@@ -15,13 +15,13 @@ class SpotifyAPI{
     static let redirectURL = "https://www.google.com/"
 }
 
-class Key{
+struct Key{
     static let accessToken = "accessToken"
     static let refreshToken = "refreshToken"
     static let clientAccessToken = "clientAccessToken"
 }
 
-class HeaderField{
+struct HeaderField{
     static let authorization = "Authorization"
     static let contentType = "Content-Type"
     static let grantType = "grant_type"

@@ -15,6 +15,9 @@ public struct Room : Codable{
     // just note their uid -- is this even necessary?
     var users:[String]
     var toQueue:[String]
+    var geohash: String?
+    var lat: Double?
+    var lng: Double?
   
     enum CodingKeys: String, CodingKey {
         case roomName
@@ -22,6 +25,9 @@ public struct Room : Codable{
         case nowPlaying
         case users
         case toQueue
+        case geohash
+        case lat
+        case lng
     }
 
 }

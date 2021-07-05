@@ -13,13 +13,29 @@ struct SongData:Decodable {
 
 struct Tracks:Decodable{
     let items:[Items]
+//    let error: PlaylistError
+}
+
+//struct PlaylistError:Decodable{
+//    let status: Int
+//    let message: String
+//}
+
+struct Track:Decodable{
+    let name: String
+    let album: Album
+    let uri: String
+    let artists: [Artists]
 }
 
 struct Items:Decodable{
-    let album:Album
-    let artists:[Artists]
-    let name:String
-    let uri:String
+    let album:Album?
+    var artists:[Artists]?
+    let name:String?
+    var uri:String?
+    var id: String?
+    var images: [Images]?
+    var track: Track?
 }
 
 struct Album:Decodable{
@@ -27,9 +43,9 @@ struct Album:Decodable{
 }
 
 struct Images:Decodable{
-    let height: Int
+//    let height: Int
     let url: String
-    let width: Int
+//    let width: Int
 }
 
 struct Artists:Decodable{
@@ -40,4 +56,14 @@ struct Artists:Decodable{
 struct NowPlayingModel:Decodable{
     var progress_ms:Int
     var item:Items
+}
+
+struct Playlist: Decodable{
+//    var name:String
+//    var imageURL:String
+    let playlists: Playlists
+}
+
+struct Playlists: Decodable{
+    let items:[Items]
 }

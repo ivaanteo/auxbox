@@ -7,7 +7,7 @@
 
 import Foundation
 
-class K{
+struct K{
     struct Colours {
         static let bgColour = "bgColour"
         static let orange = "auxOrange"

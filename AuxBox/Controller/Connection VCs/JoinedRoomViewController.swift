@@ -36,7 +36,7 @@ class JoinedRoomViewController:UIViewController{
         // delete room
 //        DatabaseManager.shared.deleteActiveRoom()
         // update user
-        guard let auxCode = DatabaseManager.user?.auxCode else {return}
+        guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {return}
         DatabaseManager.shared.updateRoomUsers(auxCode: auxCode, create: false)
         DatabaseManager.shared.deleteJoinedRoom()
         self.dismiss(animated: true, completion: nil)

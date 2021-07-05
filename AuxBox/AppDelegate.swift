@@ -34,11 +34,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().barTintColor = UIColor(named: "bgColour")
         UINavigationBar.appearance().tintColor = UIColor(named: "auxOrange")
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(white: 1, alpha: 1)]
-//        UINavigationBar.appearance().prefersLargeTitles = true
-//        UINavigationBar.appearance().largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(white: 1, alpha: 1)]
-//        let storyboard =  UIStoryboard(name: "Main", bundle: nil)
-//        let startHomeVC = storyboard.instantiateViewController(withIdentifier: "HomeVC")
-//        let startLoginVC = storyboard.instantiateViewController(withIdentifier: "LoginVC")
 
             // check if user is logged
         
@@ -70,6 +65,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     }
     
+    func applicationWillTerminate(_ application: UIApplication) {
+        // background task
+        if DatabaseManager.shared.user?.joinedRoom == DatabaseManager.shared.user?.auxCode{
+            // delete room if you're the host
+            DatabaseManager.shared.deleteActiveRoom()
+        }
+    }
 
 }
     

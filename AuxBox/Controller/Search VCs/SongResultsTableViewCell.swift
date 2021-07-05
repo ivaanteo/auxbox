@@ -17,6 +17,7 @@ class SongResultsTableViewCell:UITableViewCell{
     let queueButton = NextButton()
     let stackView = UIStackView()
 
+    static let identifier = "SongResultsCell"
 
     var song : SongDetails? {
         didSet {
@@ -61,8 +62,8 @@ class SongResultsTableViewCell:UITableViewCell{
         
 //        setupText(songTitle, fontSize: 12)
 //        setupText(songArtist, fontSize: 8)
-        songTitle.setupLabel(displayText: "", fontSize: 12)
-        songArtist.setupLabel(displayText: "", fontSize: 10)
+        songTitle.setupLabel(displayText: "", fontSize: 14)
+        songArtist.setupLabel(displayText: "", fontSize: 12)
         songTitle.translatesAutoresizingMaskIntoConstraints = false
         songArtist.translatesAutoresizingMaskIntoConstraints = false
         songImage.translatesAutoresizingMaskIntoConstraints = false

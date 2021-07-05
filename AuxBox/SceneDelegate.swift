@@ -8,15 +8,16 @@
 import UIKit
 import FBSDKCoreKit
 import Firebase
+import CoreLocation
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
+class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, CLLocationManagerDelegate{
     
     static private let kAccessTokenKey = "access-token-key"
     private let redirectUri = URL(string:"AuxBox://")!
     private let clientIdentifier = "674cd699c32e453ca39240861f9b2a3f"
     
     let navController = UINavigationController(rootViewController: HomeViewController())
-    var firstLoad = true
+//    var firstLoad = true
     var homeVC: HomeViewController{
         get{
             navController.children[0] as! HomeViewController
@@ -46,6 +47,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
         appRemote.connectionParameters.accessToken = self.accessToken
         appRemote.delegate = self
         return appRemote
+    }()
+    
+    lazy var locationManager: CLLocationManager = {
+        let locationManager = CLLocationManager()
+//        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
+        locationManager.delegate = self
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.showsBackgroundLocationIndicator = true
+        
+//        locationManager.activityType = .automotiveNavigation
+//        locationManager.pausesLocationUpdatesAutomatically = true
+        return locationManager
     }()
     
     var accessToken = UserDefaults.standard.string(forKey: kAccessTokenKey) {
@@ -117,10 +131,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
         // if session is live, connect app remote
         
         // this runs for non-first time login
-        print("database constants: \(DatabaseManager.user?.joinedRoom), \(DatabaseManager.user?.auxCode)")
-        guard DatabaseManager.user?.joinedRoom != nil else { return }
+        guard DatabaseManager.shared.user?.joinedRoom != nil else { return }
         // nil = nil
-        if DatabaseManager.user?.auxCode == DatabaseManager.user?.joinedRoom{
+        if DatabaseManager.shared.user?.auxCode == DatabaseManager.shared.user?.joinedRoom{
             appRemote.connect()
         }
     }
@@ -129,9 +142,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
-        if appRemote.isConnected{
-            appRemote.disconnect()
-        }
+//        if appRemote.isConnected{
+//            appRemote.disconnect()
+//        }
     }
     
     func connect() {
@@ -145,6 +158,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
         self.appRemote = appRemote
         homeVC.subscribeToPlayerState()
         
+        // here we connect
+        // get location, save to firebase
+        
         if homeVC.navLocVC.topViewController is LocationViewController{
             locationVC.finishCreatingRoom()
             print("executes LocationVC.finishCreatingRoom")
@@ -157,9 +173,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
 //        }else{
 //            firstLoad=false
 //        }
-        
-        
-        
         
 //        rootViewController.appRemoteConnected()
 //        locationViewController.appRemoteConnected()
@@ -176,7 +189,34 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate{
         print("didDisconnectWithError")
 //        rootViewController.appRemoteDisconnect()
     }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if homeVC.navLocVC.topViewController is LocationViewController{
+            locationVC.retrievedLocation(location: locations[0])
+        }else{
+            print("updating location: ", locations[0])
+//            print(locations[0].coordinate)
+            // update database every 2 mins? ye prolly or every song change... ye thats about right
+            // wait if dudes not playing any song then....... idk
+            DatabaseManager.shared.updateLocation(location: locations[0])
+        }
+    }
 
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("did fail with error")
+    }
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        print("did change authorisation")
+//        manager.requestLocation()
+//        locationManager.requestLocation()
+    }
+    func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager) {
+        print("paused")
+    }
+    func locationManagerDidResumeLocationUpdates(_ manager: CLLocationManager) {
+        print("location updates resumed")
+    }
 
 }
 

@@ -13,7 +13,7 @@ extension UIButton{
         self.titleLabel?.font = UIFont(name: "Futura", size: fontSize)
         self.setTitleColor(.white, for: .normal)
         self.backgroundColor = UIColor.black.withAlphaComponent(bgAlpha)
-        self.layer.cornerRadius = 20
+        self.layer.cornerRadius = height/2
         self.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5).cgColor
         self.layer.shadowOffset = CGSize(width: 0.0, height: 4.0)
         self.layer.shadowOpacity = 1.0

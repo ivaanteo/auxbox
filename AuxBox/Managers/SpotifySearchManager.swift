@@ -40,19 +40,13 @@ class SpotifySearchManager{
                     decoder.keyDecodingStrategy     = .convertFromSnakeCase
                     let songResults = try decoder.decode(SongData.self, from: data)
                     
-//                    var songDetails = [SongDetails]()
-//                    songDetails.append(contentsOf: songResults.tracks.items.compactMap({ item in
-//                        SongDetails(songName: item.name,
-//                                    artist: item.artists[0].name,
-//                                    image: item.album.images[0].url,
-//                                    uri: item.uri)
-//                        // maybe include a smaller image to save space
-//                    }) )
                     let songDetails = songResults.tracks.items.compactMap({ item in
-                                                SongDetails(songName: item.name,
-                                                            artist: item.artists[0].name,
-                                                            image: item.album.images[0].url,
-                                                            uri: item.uri)})
+                        SongDetails(songName: item.name!,
+                                    artist: item.artists?[0].name ?? "",
+                                    image: item.album?.images[0].url ?? "",
+                                    uri: item.uri ?? "")
+                        //                        let songDetails = SongDetails(songName: songData.name, artist: songData.artists?[0].name ?? "", image: songData.album?.images[0].url ?? "", uri: songData.uri ?? "")
+                    })
                     // better to return an array of SongDetails to save memory
                     completed(.success(songDetails))
                 } catch {
@@ -63,7 +57,7 @@ class SpotifySearchManager{
             }
         }
         task.resume()
-//        return RequestToken(task: task)
+        //        return RequestToken(task: task)
     }
 }
 

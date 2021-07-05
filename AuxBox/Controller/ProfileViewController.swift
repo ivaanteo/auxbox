@@ -11,11 +11,48 @@ import SafariServices
 import FBSDKLoginKit
 
 class ProfileViewController:UIViewController{
+    
+    let fbAuthManager = LoginManager()
+    
+    // Dimensions
+    private var profilePictureSize: CGFloat { return view.frame.width * 0.5 }
+    private var buttonWidth: CGFloat { return view.frame.width * 0.7 }
+    private var buttonHeight: CGFloat { return 60 }
+    
+    // Cache
+    let cache = SpotifyAuthManager.shared.cache
+    
+    // Views
     let logoutButton = NextButton()
     let connectSpotifyButton = NextButton()
     let profilePictureView = UIImageView()
-    let fbAuthManager = LoginManager()
-    let profilePictureSize = 200
+    let stackView = UIStackView()
+    
+    let nameLabel = UILabel()
+    let profileContainerView = UIView()
+    let editProfileButton = UILabel()
+    let creditsLabel = UILabel()
+    let detailsView = UIView()
+    
+    var userDetails: UserDetails?{
+        didSet{
+            if let imageURL = userDetails!.profilePictureURL{
+                print("imageURL \(imageURL)")
+                let cacheKey = NSString(string: imageURL)
+                if let img = cache.object(forKey: cacheKey){
+                    DispatchQueue.main.async {
+                        self.profilePictureView.image = img
+                    }
+                }
+                DispatchQueue.main.async {
+                    self.nameLabel.text = self.userDetails!.name
+                    self.creditsLabel.text = "\(self.userDetails!.credits)"
+                }
+            }
+        }
+    }
+    
+    
     //    let safariVC = SFSafariViewController()
     
     @objc func logoutTapped(sender: UIButton!) {
@@ -44,40 +81,107 @@ class ProfileViewController:UIViewController{
     
     override func viewDidLoad() {
         view.backgroundColor = UIColor(named: "bgColour")
-        setupNextButton(logoutButton, "Log Out")
+//        setupNextButton(logoutButton, "Log Out")
+        logoutButton.setupNextButton(title: "Log Out", fontSize: 16, width: buttonWidth, height: buttonHeight)
         logoutButton.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(logoutButton)
-        logoutButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-        logoutButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor).isActive = true
+//        view.addSubview(logoutButton)
+//        logoutButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+//        logoutButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor).isActive = true
         
-        setupNextButton(connectSpotifyButton, "Connect Spotify")
+        
+//        setupNextButton(connectSpotifyButton, "Connect Spotify")
+        connectSpotifyButton.setupNextButton(title: "Connect Spotify", fontSize: 16, width: buttonWidth, height: buttonHeight)
+        
         connectSpotifyButton.addTarget(self, action: #selector(connectSpotifyTapped), for: .touchUpInside)
         connectSpotifyButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(connectSpotifyButton)
-        connectSpotifyButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-        connectSpotifyButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: -70).isActive = true
+//        view.addSubview(connectSpotifyButton)
+//        connectSpotifyButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+//        connectSpotifyButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: -70).isActive = true
         
         
-        profilePictureView.image = UIImage(systemName: "person")
+        
+//        profilePictureView.image = UIImage(systemName: "person")
+        
+//        fetchUserData()
+//        profilePictureView.frame = CGRect(x: 0, y: 0, width: profilePictureSize, height: profilePictureSize)
+        profilePictureView.frame.size = CGSize(width: profilePictureSize, height: profilePictureSize)
+//        frame = CGRect(origin: view.center, size: CGSize(width: profilePictureSize, height: profilePictureSize))
         profilePictureView.tintColor = UIColor(named: K.Colours.orange)
-        fetchUserData()
-        
         profilePictureView.layer.cornerRadius = CGFloat(profilePictureSize) / 2
-        profilePictureView.layer.borderWidth = 1
-        //        profilePictureView.layer.masksToBounds = true
-        profilePictureView.clipsToBounds = true
-        profilePictureView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(profilePictureView)
-        profilePictureView.widthAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
-        profilePictureView.heightAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
-        profilePictureView.topAnchor.constraint(equalTo: view.topAnchor, constant: 100).isActive = true
-        profilePictureView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        profilePictureView.addCircleGradientBorder(lineWidth: 10)
         profilePictureView.contentMode = .scaleAspectFit
+        //        profilePictureView.layer.masksToBounds = true
+        
+        profilePictureView.clipsToBounds = true
+//        profilePictureView.translatesAutoresizingMaskIntoConstraints = false
+        
+//        view.addSubview(profilePictureView)
+        profileContainerView.addSubview(profilePictureView)
+        profileContainerView.translatesAutoresizingMaskIntoConstraints = false
+        profileContainerView.widthAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
+        profileContainerView.heightAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
+        
+        nameLabel.setupLabel(displayText: "", fontSize: 24, overrideText: false)
+        editProfileButton.setupLabel(displayText: "Edit Profile", fontSize: 16, textColour: UIColor(named: K.Colours.offWhite)!)
+        creditsLabel.setupLabel(displayText: "", fontSize: 16, textColour: UIColor(named: K.Colours.offWhite)!, overrideText: false)
+        
+        setupDetailsView()
         
         
+        setupStackView()
+        setupStackViewConstraints()
         
+//        profilePictureView.widthAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
+//        profilePictureView.heightAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
+//        profilePictureView.topAnchor.constraint(equalTo: view.topAnchor, constant: 100).isActive = true
+//        profilePictureView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        
+    }
+    
+    fileprivate func setupDetailsView(){
+        detailsView.addSubview(nameLabel)
+        detailsView.addSubview(editProfileButton)
+        detailsView.addSubview(creditsLabel)
+        
+        detailsView.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        editProfileButton.translatesAutoresizingMaskIntoConstraints = false
+        creditsLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        nameLabel.topAnchor.constraint(equalTo: detailsView.topAnchor).isActive = true
+        nameLabel.leadingAnchor.constraint(equalTo: detailsView.leadingAnchor).isActive = true
+        nameLabel.bottomAnchor.constraint(equalTo: editProfileButton.topAnchor).isActive = true
+        
+//        nameLabel.trailingAnchor.constraint(equalTo: creditsLabel.leadingAnchor).isActive = true
+        
+        editProfileButton.bottomAnchor.constraint(equalTo: detailsView.bottomAnchor).isActive = true
+        editProfileButton.leadingAnchor.constraint(equalTo: detailsView.leadingAnchor).isActive = true
+        
+        creditsLabel.trailingAnchor.constraint(equalTo: detailsView.trailingAnchor).isActive = true
+        creditsLabel.centerYAnchor.constraint(equalTo: detailsView.centerYAnchor).isActive = true
+        detailsView.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+    }
+    
+    fileprivate func setupStackView(){
+        stackView.axis = .vertical
+        stackView.alignment = .center
+//        stackView.distribution = .equalCentering
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 20
+        stackView.addArrangedSubview(profileContainerView)
+        stackView.addArrangedSubview(detailsView)
+        stackView.addArrangedSubview(connectSpotifyButton)
+        stackView.addArrangedSubview(logoutButton)
+        view.addSubview(stackView)
+    }
+    
+    fileprivate func setupStackViewConstraints(){
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+//        stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
     }
     
     
@@ -130,39 +234,6 @@ class ProfileViewController:UIViewController{
             }
         }
     }
-    
-    private func fetchUserData() {
-//        print(Auth.auth().currentUser?.displayName)
-        guard let photoURL = Auth.auth().currentUser?.photoURL else {return}
-        if (photoURL.absoluteString.contains("facebook")) == true{
-            // check if user image is from facebook. if so, make graph request
-            let graphRequest = GraphRequest(graphPath: "me", parameters: ["fields":"id, email, name, picture.width(480).height(480)"])
-            graphRequest.start(completionHandler: { (connection, result, error) in
-                if error != nil {
-                    print("Error",error!.localizedDescription)
-                }
-                else{
-                    let field = result! as? [String:Any]
-                    if let imageURL = ((field!["picture"] as? [String: Any])?["data"] as? [String: Any])?["url"] as? String {
-                        let url = URL(string: imageURL)
-                        let data = NSData(contentsOf: url!)
-                        let image = UIImage(data: data! as Data)
-                        self.profilePictureView.image = image
-                        
-                        // PLEASE CACHE THE PHOTO!!
-                        
-                    }
-                }
-            })
-        }else{
-            // else just use normal process to fill uiimageview
-            if let data = try? Data(contentsOf: photoURL){
-                let image = UIImage(data:data)
-                self.profilePictureView.image = image
-            }
-        }
-    }
-    
     
     
 }

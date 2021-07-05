@@ -16,21 +16,28 @@ extension UIImageView{
         self.layer.shadowRadius = 3
     }
     
-    func addCircleGradiendBorder() {
+    func addCircleGradientBorder(lineWidth: CGFloat = 2) {
         let gradientLayer = Colors().gl
-//        gradientLayer?.frame =  CGRect(origin: CGPoint.zero, size: bounds.size)
+//        gradientLayer?.frBRame =  CGRect(origin: CGPoint.zero, size: bounds.size)
             gradientLayer!.frame = bounds
             layer.cornerRadius = frame.size.width / 2
             clipsToBounds = true
             let shape = CAShapeLayer()
             let path = UIBezierPath(ovalIn: bounds)
             
-            shape.lineWidth = 2
+            shape.lineWidth = lineWidth
             shape.path = path.cgPath
             shape.strokeColor = UIColor.black.cgColor
             shape.fillColor = UIColor.clear.cgColor // clear
             gradientLayer!.mask = shape
             layer.insertSublayer(gradientLayer!, at: 0)
+        }
+    
+    func roundCorners(corners: UIRectCorner, radius: CGFloat) {
+            let path = UIBezierPath(roundedRect: bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+            let mask = CAShapeLayer()
+            mask.path = path.cgPath
+            layer.mask = mask
         }
 }
 
