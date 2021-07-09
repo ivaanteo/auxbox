@@ -26,7 +26,9 @@ class NowPlayingViewController: UIViewController {
     }
     
     var currentQueue = [String]()
-    var currentQueueData = [SongDetails]()
+//    var currentQueueData = [SongDetails]()
+    var normalQueue = [String]()
+    
     
     var songImgLength: Double?{
         Double(view.frame.width*0.7)
@@ -172,6 +174,7 @@ class NowPlayingViewController: UIViewController {
 //            }
 //        }
         currentQueue = DatabaseManager.shared.roomDetails?.currentQueue ?? []
+        normalQueue = DatabaseManager.shared.roomDetails?.normalQueue ?? []
 //        if currentQueue != []{
 //            for uri in currentQueue!{
 //                SpotifyAuthManager.shared.getSongDetails(trackURI: uri) { res in
@@ -257,12 +260,15 @@ extension NowPlayingViewController:UITableViewDelegate{
 
 extension NowPlayingViewController:UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return currentQueue.count
+        return section == 0 ? currentQueue.count : normalQueue.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let queueList = indexPath.section == 0 ? currentQueue : normalQueue
         let cell = tableView.dequeueReusableCell(withIdentifier: "currentQueueCell", for: indexPath) as! CurrentQueueCell
-        let uri = currentQueue[indexPath.row]
+//        let uri = currentQueue[indexPath.row]
+        let uri = queueList[indexPath.row]
         SpotifyAuthManager.shared.getSongDetails(trackURI: uri) { res in
             switch res{
             case .success(let song):
@@ -278,23 +284,30 @@ extension NowPlayingViewController:UITableViewDataSource{
         return cell
     }
     
+    
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let header = UIView()
         let text = UILabel()
         var queueText: String{
-            if currentQueue.count > 1{
-                return "\(currentQueue.count) songs in queue"
-            }else if currentQueue.count == 1{
-                return "\(currentQueue.count) song in queue"
+            if section == 0{
+                if currentQueue.count > 1{
+                    return "\(currentQueue.count) songs in premium queue"
+                }else if currentQueue.count == 1{
+                    return "\(currentQueue.count) song in premium queue"
+                }
+                return "No songs in premium queue"
             }
-            return "No songs in queue"
-//            if currentQueueData.count > 1{
-//                return "\(currentQueueData.count) songs in queue"
-//            }else if currentQueueData.count == 1{
-//                return "\(currentQueueData.count) song in queue"
-//            }
-//            return "No songs in queue"
+            else if section == 1{
+                if normalQueue.count > 1{
+                    return "\(normalQueue.count) songs in queue"
+                }else if normalQueue.count == 1{
+                    return "\(normalQueue.count) song in queue"
+                }
+                return "No songs in queue"
+            }
+            return "Oops, something went wrong!"
         }
+        
         text.setupLabel(displayText: queueText, fontSize: 18)
         text.translatesAutoresizingMaskIntoConstraints = false
         header.addSubview(text)
@@ -303,6 +316,10 @@ extension NowPlayingViewController:UITableViewDataSource{
         text.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 30).isActive = true
 
         return header
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
     }
     
     

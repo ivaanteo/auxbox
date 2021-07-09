@@ -40,7 +40,9 @@ class CreatedViewController: UIViewController{
     }
     
     @objc func continueTapped(sender: UIButton!){
-        self.dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async {
+            self.dismiss(animated: true, completion: nil)
+        }
     }
     @objc func endSessionTapped(sender: UIButton!){
         // pause music
@@ -49,7 +51,9 @@ class CreatedViewController: UIViewController{
         DatabaseManager.shared.deleteActiveRoom()
         // update user
         DatabaseManager.shared.deleteJoinedRoom()
+
         appRemote?.disconnect()
+        
         locationManager.stopUpdatingLocation()
 //        locationManager.stopMonitoringSignificantLocationChanges()
         self.dismiss(animated: true, completion: nil)

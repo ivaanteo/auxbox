@@ -35,6 +35,8 @@ class DatabaseManager{
     
 //    func saveUser(user: User, completed: @escaping (String?) -> Void){
     func saveUser(user: User, completed: @escaping (UserDetails?) -> Void){
+        
+        
         guard let profilePic = user.photoURL?.absoluteString else { return }
         guard let displayName = user.displayName else { return }
         guard let email = user.email else { return }
@@ -42,17 +44,17 @@ class DatabaseManager{
         let usersRef = self.db.collection(K.FStore.usersCollection).document(user.uid)
         usersRef.getDocument { (document, error) in
             guard error == nil else { return }
-            guard DatabaseManager.shared.user == nil else {
-                completed(DatabaseManager.shared.user)
-                return
-            }
-            
+//            guard DatabaseManager.shared.user == nil else {
+//                // account exists and all's good
+//                completed(DatabaseManager.shared.user)
+//                return
+//            }
+            // this happens when account exists but first time logging in
             if let document = document, document.exists {
                 // check if user UID exists
-                let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
+//                let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
                 
-                print("Document data: \(dataDescription)")
-                
+//                print("Document data: \(dataDescription)")
                 do{
                     let userDetails = try document.data(as: UserDetails.self)
                     DatabaseManager.shared.user = userDetails
@@ -61,7 +63,7 @@ class DatabaseManager{
                     completed(nil)
                 }
             } else {
-                // first timers
+                // no account created yet
                 let auxCode = self.getVerifiedAuxCode()
                 let userDetails = UserDetails(name: displayName,
                                               email: email,
@@ -258,17 +260,97 @@ class DatabaseManager{
         }
     }
     
-    func updateRoomToQueue(uri: String, completed: @escaping (String)->Void ){
+    func updateRoomToQueue(uri: String, isPremiumQueue: Bool, recipientUID: String? = nil, completed: @escaping (Result<String, Error>)->Void){
         guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {return}
         let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
-        roomRef.updateData(["toQueue" : FieldValue.arrayUnion([uri])]){ err in
-            if let err = err {
-                print("Error updating document: \(err)")
-                completed(err.localizedDescription)
-            } else {
-                completed(K.Texts.queuedSongText)
+        
+        let dataToUpdate = isPremiumQueue ? ["toQueue" : FieldValue.arrayUnion([uri])] : ["normalQueue" : FieldValue.arrayUnion([uri])]
+        
+        if isPremiumQueue{
+            // batch update for credits
+            let batch = db.batch()
+            batch.updateData(dataToUpdate, forDocument: roomRef)
+            guard let ownUID = Auth.auth().currentUser?.uid else { return }
+            let ownUserRef = db.collection(K.FStore.usersCollection).document(ownUID)
+            guard let recipientUID = recipientUID else { return }
+            let recipientUserRef = db.collection(K.FStore.usersCollection).document(recipientUID)
+            batch.updateData(["credits" : FieldValue.increment(Double(-1))], forDocument: ownUserRef)
+            batch.updateData(["credits" : FieldValue.increment(Double(1))], forDocument: recipientUserRef)
+            
+            // here, update transaction collection with credits
+            let transactionsRef = db.collection(K.FStore.transactionsCollection).document()
+            print("timeIntervalSince1970 \(Date().timeIntervalSince1970)")
+            let time = Date().timeIntervalSince1970
+            let txn = TransactionModel(songURI: uri, timestamp: time, sender: ownUID, recipient: recipientUID)
+            do{
+                try batch.setData(from: txn, forDocument: transactionsRef)
+            }catch{
+                print("error setting data \(error.localizedDescription)")
+            }
+
+            batch.commit(){ err in
+                if let error = err {
+                    completed(.failure(error))
+                }else{
+                    completed(.success(K.Texts.queuedSongText))
+                }
+            }
+        }else{
+            // normal queue, just add to normalQueue
+            roomRef.updateData(dataToUpdate){ err in
+                if let err = err {
+                    print("Error updating document: \(err)")
+                    completed(.failure(err))
+                } else {
+                    completed(.success(K.Texts.queuedSongText))
+                }
             }
         }
+    }
+    
+    func fetchTransactions(isHost: Bool, completed: @escaping (Result<[TransactionViewModel], NetworkError>) -> Void){
+        guard let ownUID = Auth.auth().currentUser?.uid else { return }
+        let transactionsRef = isHost ? db.collection(K.FStore.transactionsCollection).whereField("recipient", isEqualTo: ownUID).order(by: "timestamp", descending: true) : db.collection(K.FStore.transactionsCollection).whereField("sender", isEqualTo: ownUID).order(by: "timestamp", descending: true)
+    
+        let group = DispatchGroup()
+        transactionsRef.getDocuments { (snapshot, err) in
+            guard err == nil else {
+                print("Error getting documents: \(String(describing: err?.localizedDescription))")
+                completed(.failure(.invalidResponse))
+                return
+            }
+            
+            let transactionsList = snapshot?.documents.map({ (doc) -> TransactionViewModel in
+                var transaction: TransactionViewModel?
+                do{
+                    let model = try doc.data(as: TransactionModel.self)
+                    group.enter()
+                    SpotifyAuthManager.shared.getSongDetails(trackURI: model!.songURI) { (res) in
+                        switch res{
+                        case .success(let song):
+                            let date = Date(timeIntervalSince1970: model!.timestamp)
+                            let dateFormatter = DateFormatter()
+                            dateFormatter.dateStyle = .medium
+                            let dateString = dateFormatter.string(from: date)
+                            transaction = TransactionViewModel(date: dateString, songName: song.songName, artist: song.artist)
+                            group.leave()
+                        case .failure:
+                            print("error getting song details")
+                            transaction = TransactionViewModel(date: "-", songName: "-", artist: "-")
+                            group.leave()
+                        }
+                    }
+                }catch{
+                    print("error decoding data \(error.localizedDescription)")
+                    transaction = TransactionViewModel(date: "-", songName: "-", artist: "-")
+                    group.leave()
+                }
+                group.wait()
+                return transaction!
+            })
+            completed(.success(transactionsList!))
+        }
+        
     }
     
     func updateEntireRoom(room: Room){
@@ -300,8 +382,20 @@ class DatabaseManager{
             updatedCurrentQueue.append(uri)
         }
         roomRef.updateData(["currentQueue" : updatedCurrentQueue, "toQueue" : FieldValue.arrayRemove(queueList)])
+        // update credits here bc might as well
+        // should follow database, but not foolproof
+        DatabaseManager.shared.user?.credits += queueList.count
 //        roomRef.updateData(["toQueue" : FieldValue.arrayRemove(queueList)])
     }
+    
+    func didNormalQueueSong(uri: String){
+        guard let auxCode = DatabaseManager.shared.user?.auxCode else {return}
+        let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
+        guard let currentQueue = DatabaseManager.shared.roomDetails?.currentQueue else { return }
+        roomRef.updateData(["currentQueue" : currentQueue, "normalQueue" : FieldValue.arrayRemove([uri])])
+    }
+    
+    
     
     func updateRoomCurrentQueue(songURIToRemove: String){
         guard let auxCode = DatabaseManager.shared.user?.auxCode else {return}
@@ -322,12 +416,74 @@ class DatabaseManager{
                 print("updateRoomNowPlaying successfully updated")
             }
         }
-//                do{
-//                    try roomRef.setData(from: nowPlaying, merge: true)
-//
-//                }catch let error{
-//                    print(error.localizedDescription)
-//                }
+    }
+    
+    func batchStartActiveRoom(room: Room){
+        // should create a room and update user's joined room property to his own auxcode
+        let batch = db.batch()
+        
+        // create room
+        guard let auxCode = DatabaseManager.shared.user?.auxCode else { return }
+        let roomRef = db.collection(K.FStore.roomsCollection).document(auxCode)
+        do {
+            try batch.setData(from: room, forDocument: roomRef)
+            DatabaseManager.shared.roomDetails = room
+        } catch {
+            print("Error setting room \(error.localizedDescription)")
+        }
+        
+        // update user's room
+        guard let userUID = Auth.auth().currentUser?.uid else{return}
+        let usersRef = self.db.collection(K.FStore.usersCollection).document(userUID)
+        batch.updateData(["joinedRoom": auxCode], forDocument: usersRef)
+        DatabaseManager.shared.user?.joinedRoom = auxCode
+        
+        
+        batch.commit() { err in
+            if let err = err{
+                print("Error with batch start active room \(err.localizedDescription)")
+            }else{
+                print("Batch create room succeeded")
+            }
+        }
+    }
+    
+    func batchJoinRoom(auxCode: String, room: Room?, exitRoom: Bool, completed: @escaping (Error?) -> Void){
+        guard let userUID = Auth.auth().currentUser?.uid else{ print("error getting current user"); return}
+        
+        
+        let batch = db.batch()
+        
+        // update room's users
+        let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
+        let userRef = self.db.collection(K.FStore.usersCollection).document(userUID)
+        if exitRoom{
+            // exit room, delete uid from room's list of users
+            print("userUID: \(userUID)")
+            batch.updateData(["users" : FieldValue.arrayRemove([userUID])], forDocument: roomRef)
+            // remove joined room
+            batch.updateData(["joinedRoom" : FieldValue.delete()], forDocument: userRef)
+            DatabaseManager.shared.user?.joinedRoom = nil
+            DatabaseManager.shared.roomDetails = nil
+        }else{
+            // join room, add uid to room's list of users
+            batch.updateData(["users" : FieldValue.arrayUnion([userUID])], forDocument: roomRef)
+            // add room's auxcode to user's joined room
+            batch.updateData(["joinedRoom" : auxCode], forDocument: userRef)
+            // update local state
+            DatabaseManager.shared.user?.joinedRoom = auxCode
+            DatabaseManager.shared.roomDetails = room!
+        }
+        
+        batch.commit(){ err in
+            if let err = err{
+                completed(err)
+                print("Failed to batch join room \(err.localizedDescription)")
+            }else{
+                completed(nil)
+                print("Batch join room success")
+            }
+        }
     }
     
     func startActiveRoom(room: Room){
@@ -376,6 +532,8 @@ class DatabaseManager{
 //        return auxCode
 //    }
     
+    
+    
     private func getVerifiedAuxCode() -> String{
         var auxCode = generateAuxCode(of: 6)
         let usersRef = db.collection(K.FStore.usersCollection)
@@ -387,7 +545,7 @@ class DatabaseManager{
                 if querySnapshot!.documents != []{
                     auxCode = self.getVerifiedAuxCode()
                 }
-                // save here
+                // document doesn't exist, so you can return aux code alr
             }
         }
         return auxCode

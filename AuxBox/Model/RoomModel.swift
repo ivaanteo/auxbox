@@ -15,6 +15,7 @@ public struct Room : Codable{
     // just note their uid -- is this even necessary?
     var users:[String]
     var toQueue:[String]
+    var normalQueue:[String]
     var geohash: String?
     var lat: Double?
     var lng: Double?
@@ -25,6 +26,7 @@ public struct Room : Codable{
         case nowPlaying
         case users
         case toQueue
+        case normalQueue
         case geohash
         case lat
         case lng

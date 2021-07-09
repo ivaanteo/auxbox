@@ -32,6 +32,7 @@ class LocationViewController:UIViewController{
     lazy var createRoomStackView = UIStackView()
     lazy var combinedStackview = UIStackView()
     
+    lazy var loadingSpinner = UIActivityIndicatorView()
     private var segmentedControl: UISegmentedControl!
     private let segmentedControlTabs = ["Join", "Create"]
     
@@ -116,6 +117,7 @@ class LocationViewController:UIViewController{
     
     @objc func joinButtonTapped(sender: UIButton!){
         // check if auxcode exists
+        
         guard let enteredAuxCode = joinRoomTextField.text else {return}
         if enteredAuxCode != ""{
             joinRoom(with: enteredAuxCode)
@@ -131,28 +133,36 @@ class LocationViewController:UIViewController{
         // check if accesstoken exists
         // authenticate if does not...
         if createRoomTextField.text != ""{
+            showActivityIndicator(activityView: loadingSpinner)
             //            guard let currentUser = Auth.auth().currentUser else {return}
             
             if PersistenceManager.retrieveRefreshToken() == "" {
                 // no refresh token, first time opening app
                 // means you gotta get an ACCESS TOKEN, rather than a new refresh token
                 guard let url = URL(string: "\(SpotifyAPI.accountURL)authorize?client_id=\(SpotifyAPI.clientID)&response_type=code&redirect_uri=\(SpotifyAPI.redirectURI)&scope=\(HeaderField.scope)") else {
+                        hideActivityIndicator(activityView: loadingSpinner)
                         print("error, failed to authorize spotify")
                     return}
+                hideActivityIndicator(activityView: loadingSpinner)
                 presentSafariVC(with: url)
             }
             // allow for next step when safari vc presented
             self.didTapCreateRoom = true
             if appRemote.isConnected{
-                // save room
-                self.appRemote.playerAPI?.getPlayerState({ (res, err) in
-                    guard err == nil else { return }
-                    // get nowPlaying
-                    let playerState = res as! SPTAppRemotePlayerState
-                    // save room into firestore
-                    self.saveRoom(playerState, roomName: self.createRoomTextField.text!)
-                    self.transitionToCreatedVC()
-            })
+                // we gon play spotify for them
+                appRemote.authorizeAndPlayURI("spotify:track:62vpWI1CHwFy7tMIcSStl8")
+                finishCreatingRoom()
+                
+//                // save room
+//                self.appRemote.playerAPI?.getPlayerState({ (res, err) in
+//                    guard err == nil else { return }
+//                    // get nowPlaying
+//                    let playerState = res as! SPTAppRemotePlayerState
+//                    // save room into firestore
+//                    self.saveRoom(playerState, roomName: self.createRoomTextField.text!)
+//                    self.transitionToCreatedVC()
+//                })
+                
 //                transitionToCreatedVC()
             }else{
                 // begin auth and connection process
@@ -161,6 +171,8 @@ class LocationViewController:UIViewController{
                     showAppStoreInstall()
                 }
             }
+        }else{
+            showAlert(title: "Oops", message: "Please enter a valid title")
         }
     }
     
@@ -181,20 +193,48 @@ class LocationViewController:UIViewController{
         SpotifyAuthManager.shared.getSongDetails(trackURI: playerState.track.uri) { [weak self] result in
                 switch result{
                 case .success(let currentTrack):
-                    let room = Room(roomName: roomName,
-                                    currentQueue: [],
-                                    nowPlaying: currentTrack,
-                                    users: [],
-                                    toQueue: [])
-                    DatabaseManager.shared.startActiveRoom(room: room)
-                    if let auxCode = DatabaseManager.shared.user?.auxCode{
-                        DatabaseManager.shared.updateUserRoom(auxCode: auxCode)
+                    var room: Room?
+                    guard let uid = Auth.auth().currentUser?.uid else {print("error getting uid"); return }
+                    
+                    DispatchQueue.main.async {
+                        // main thread for location manager
+                        if let location = self?.locationManager.location{
+                            let coordinates = location.coordinate
+                            let hash = GFUtils.geoHash(forLocation: coordinates)
+                            room = Room(roomName: roomName,
+                                            currentQueue: [],
+                                            nowPlaying: currentTrack,
+                                            users: [uid],
+                                            toQueue: [],
+                                            normalQueue: [],
+                                            geohash: hash,
+                                            lat: coordinates.latitude,
+                                            lng: coordinates.longitude
+                                            )
+                            DatabaseManager.shared.batchStartActiveRoom(room: room!)
+                        }else{
+                            room = Room(roomName: roomName,
+                                            currentQueue: [],
+                                            nowPlaying: currentTrack,
+                                            users: [uid],
+                                            toQueue: [],
+                                            normalQueue: []
+                                            )
+                            DatabaseManager.shared.batchStartActiveRoom(room: room!)
+                        }
                     }
+                    
+                    
+                    
+//                    DatabaseManager.shared.startActiveRoom(room: room!)
+//                    if let auxCode = DatabaseManager.shared.user?.auxCode{
+//                        DatabaseManager.shared.updateUserRoom(auxCode: auxCode)
+//                    }
+                    
                 case .failure(let error):
                     self?.presentAlert(title: "Error", message: error.rawValue)
                 }
             }
-
     }
     
     //MARK: - Spotify Web API Auth
@@ -293,24 +333,31 @@ class LocationViewController:UIViewController{
     
     // MARK: Join Room
     func joinRoom(with auxCode: String){
+        showActivityIndicator(activityView: loadingSpinner)
         DatabaseManager.shared.fetchData(collection: K.FStore.roomsCollection,
                                          document: auxCode,
                                          type: Room.self) { res in
             switch res{
             case .success(let room):
-                DatabaseManager.shared.roomDetails = room
-                DatabaseManager.shared.updateUserRoom(auxCode: auxCode)
-                DatabaseManager.shared.updateRoomUsers(auxCode: auxCode, create: true)
-                // check that there are no errors
-                
-                let joinedRoomVC = JoinedRoomViewController()
-                 joinedRoomVC.auxCodeDesc = auxCode
-                joinedRoomVC.roomNameDesc = room.roomName
-                DispatchQueue.main.async{
-                    self.navigationController?.pushViewController(joinedRoomVC, animated: true)
+                DatabaseManager.shared.batchJoinRoom(auxCode: auxCode, room: room, exitRoom: false) { err in
+                    // present alert if cannot batch join
+                    guard err == nil else {
+                        DispatchQueue.main.async {
+                            self.hideActivityIndicator(activityView: self.loadingSpinner)
+                            self.presentAlert(title: "Oops!", message: "Error joining room: \(err!.localizedDescription)")
+                        }
+                        return }
+                    
+                    let joinedRoomVC = JoinedRoomViewController()
+                     joinedRoomVC.auxCodeDesc = auxCode
+                    joinedRoomVC.roomNameDesc = room.roomName
+                    DispatchQueue.main.async{
+                        self.hideActivityIndicator(activityView: self.loadingSpinner)
+                        self.navigationController?.pushViewController(joinedRoomVC, animated: true)
+                    }
                 }
             case .failure(_):
-//                    self.presentAlert(title: "Oops, something went wrong!", message: error.rawValue)
+                self.hideActivityIndicator(activityView: self.loadingSpinner)
                 self.presentAlert(title: "Oops!", message: "We couldn't find a room with that auxcode")
             }
         }
@@ -362,6 +409,7 @@ class LocationViewController:UIViewController{
     func finishCreatingRoom(){
         // Check if Spotify Premium
         if didTapCreateRoom{// this prevents first load from calling this
+            showActivityIndicator(activityView: loadingSpinner)
             appRemote.userAPI?.fetchCapabilities(callback: {[weak self] (res, err) in
                 guard err == nil else {
                     self?.presentAlert(title: "Error", message: err!.localizedDescription)
@@ -374,13 +422,16 @@ class LocationViewController:UIViewController{
                         let playerState = res as! SPTAppRemotePlayerState
                         // save room into firestore
                         self?.saveRoom(playerState, roomName: (self?.createRoomTextField.text)!)
-                        if let location = self?.locationManager.location{
-                            DatabaseManager.shared.updateLocation(location: location)
+                        DispatchQueue.main.async {
+//                            let lcnManager = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)!.locationManager
+                            if let location = self?.locationManager.location{
+                                DatabaseManager.shared.updateLocation(location: location)
+                            }
+                            self?.locationManager.requestAlwaysAuthorization()
+                            self?.locationManager.startUpdatingLocation()
+                            self?.hideActivityIndicator(activityView: self!.loadingSpinner)
+                            self?.transitionToCreatedVC()
                         }
-                        self?.locationManager.requestAlwaysAuthorization()
-                        self?.locationManager.startUpdatingLocation()
-//                        self?.locationManager.startMonitoringSignificantLocationChanges()
-                        self?.transitionToCreatedVC()
                     })
                 }
             })

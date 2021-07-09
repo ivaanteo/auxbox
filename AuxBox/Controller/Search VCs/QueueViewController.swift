@@ -32,31 +32,84 @@ class QueueViewController: UIViewController{
     let songTitle = UILabel()
     let songArtist = UILabel()
     let stackView = UIStackView()
-    let queueButton = UIButton()
+    lazy var loadingSpinner = UIActivityIndicatorView()
+//    let queueButton = UIButton()
+    var queueButton: TwoLineTransparentButton!
+    var premiumQueueButton: TwoLineTransparentButton!
     
     
     var songImgLength: Double?{
         Double(view.frame.width*0.7)
     }
-    var edgePadding: Double?{
+    var edgePadding: Double{
         Double(view.frame.width*0.15)
     }
     var labelYAnchor:CGFloat{
         // (entire height - 3 padding - length of img) / 2 + 2 padding
         // height = 1.5 width bc i set that in previous controller
-        -0.475 * view.frame.width
+        
+//        -0.475 * view.frame.width
+        -0.675 * view.frame.width
     }
+    
+    //rename to premiumqueue
+    // database's toQueue becomes the main queue
     @objc func queueButtonTapped(sender: UIButton!){
+//        guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {displayAlert(text: "Please connect to a room first!", delay: 1); return}
+//        if auxCode != ""{
+//            guard let uri = song?.uri else {return}
+//            DatabaseManager.shared.updateRoomToQueue(uri: uri){text in
+//                self.displayAlert(text: text, delay: 1)
+//            }
+//        }else{
+//            displayAlert(text: "Please connect to a room first!", delay: 1)
+//        }
+        self.showActivityIndicator(activityView: loadingSpinner)
+        guard let availableCredits = DatabaseManager.shared.user?.credits else {
+            print("Credits is nil")
+            hideActivityIndicator(activityView: loadingSpinner)
+            displayAlert(text: "Error: Credits is nil", delay: 1, remainOnQueueVC: true)
+            return }
+        if availableCredits > 0{
+            print("Enough credits")
+            updateRoomQueue(isPremiumQueue: true)
+        }else{
+            print("Not enough credits")
+            hideActivityIndicator(activityView: loadingSpinner)
+            displayAlert(text: "Oops, you don't have enough credits. Please top up!", delay: 1, remainOnQueueVC: true)
+        }
+    }
+    
+    // objc func normalqueue
+    // adds to a new field called "normalQueue"
+    @objc func normalQueueButtonTapped(sender: UIButton!){
+        updateRoomQueue(isPremiumQueue: false)
+    }
+    
+    func updateRoomQueue(isPremiumQueue: Bool){
         guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {displayAlert(text: "Please connect to a room first!", delay: 1); return}
         if auxCode != ""{
             guard let uri = song?.uri else {return}
-            DatabaseManager.shared.updateRoomToQueue(uri: uri){text in
-                self.displayAlert(text: text, delay: 1)
+            // update room normal queue
+            DatabaseManager.shared.updateRoomToQueue(uri: uri, isPremiumQueue: isPremiumQueue, recipientUID: DatabaseManager.shared.roomDetails?.users[0]){res in
+                switch res{
+                case .success(let text):
+                    if isPremiumQueue{
+                        DatabaseManager.shared.user?.credits -= 1
+                    }
+                    self.hideActivityIndicator(activityView: self.loadingSpinner)
+                    self.displayAlert(text: text, delay: 1)
+                case .failure(let err):
+                    self.hideActivityIndicator(activityView: self.loadingSpinner)
+                    self.displayAlert(text: err.localizedDescription, delay: 1)
+                }
             }
         }else{
+            self.hideActivityIndicator(activityView: self.loadingSpinner)
             displayAlert(text: "Please connect to a room first!", delay: 1)
         }
     }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -72,11 +125,25 @@ class QueueViewController: UIViewController{
         setupText(songTitle, fontSize: 24)
         setupText(songArtist, fontSize: 18)
 //        setupQueueButton(queueButton)
-        queueButton.setupTransparentButton(btnTitle: "Queue Now", bgAlpha: 0.5, fontSize: 16, width: CGFloat(songImgLength!), height: CGFloat(edgePadding!))
+//        queueButton.setupTransparentButton(btnTitle: "Queue Now", bgAlpha: 0.5, fontSize: 16, width: CGFloat(songImgLength!), height: CGFloat(edgePadding))
+        queueButton = TwoLineTransparentButton(width: CGFloat(songImgLength!),
+                                               height: CGFloat(edgePadding),
+                                               bgAlpha: 0.5,
+                                               titleText: "Queue Song",
+                                               descText: "Adds song to normal queue")
+        
+        premiumQueueButton = TwoLineTransparentButton(width: CGFloat(songImgLength!),
+                                                      height: CGFloat(edgePadding),
+                                                      bgAlpha: 0.8,
+                                                      titleText: "Beat the Queue",
+                                                      descText: "Adds song to premium queue", includesImage: true)
+//        premiumQueueButton.setupTransparentButton(btnTitle: "Premium Queue", bgAlpha: 0.8, fontSize: 16, width: CGFloat(songImgLength!), height: CGFloat(edgePadding))
         
         view.addSubview(songImage)
         view.addSubview(queueButton)
+        view.addSubview(premiumQueueButton)
         setupButtonConstraints()
+        setupPremiumQueueButtonConstraints()
         
         songTitle.translatesAutoresizingMaskIntoConstraints = false
         songArtist.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +153,7 @@ class QueueViewController: UIViewController{
         songImage.widthAnchor.constraint(equalToConstant: CGFloat(songImgLength!)).isActive = true
         songImage.heightAnchor.constraint(equalToConstant: CGFloat(songImgLength!)).isActive = true
         songImage.topAnchor.constraint(equalTo: view.topAnchor,
-                                       constant: CGFloat(edgePadding!)).isActive = true
+                                       constant: CGFloat(edgePadding)).isActive = true
         songImage.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         
         songImage.contentMode = .scaleAspectFit
@@ -96,6 +163,7 @@ class QueueViewController: UIViewController{
         setupStackView(stackView, songTitle, songArtist)
         view.addSubview(stackView)
         setupStackViewConstraints(stackView)
+        
     }
     
     override func viewDidLayoutSubviews() {
@@ -126,7 +194,7 @@ class QueueViewController: UIViewController{
         }
     }
     
-    fileprivate func displayAlert(text: String, delay: Double){
+    fileprivate func displayAlert(text: String, delay: Double, remainOnQueueVC: Bool = false){
         let alert = UIAlertController(title: text, message: "", preferredStyle: .alert)
         if text != K.Texts.queuedSongText{
             alert.addAction(UIAlertAction(title: "Ok", style: UIAlertAction.Style.default, handler: {_ in
@@ -137,7 +205,9 @@ class QueueViewController: UIViewController{
             present(alert, animated: true, completion: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [unowned self] in
                 self.dismiss(animated: true) {
-                    self.dismiss(animated: true)
+                    if !remainOnQueueVC{
+                        self.dismiss(animated: true)
+                    }
                 }
             }
         }
@@ -159,12 +229,12 @@ class QueueViewController: UIViewController{
         stackView.centerYAnchor.constraint(equalTo: view.bottomAnchor,
                                            constant: labelYAnchor).isActive = true
         stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,
-                                            constant: CGFloat(-edgePadding!)).isActive = true
+                                            constant: CGFloat(-edgePadding)).isActive = true
         stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,
-                                           constant: CGFloat(edgePadding!)).isActive = true
+                                           constant: CGFloat(edgePadding)).isActive = true
     }
+    
     fileprivate func setupText(_ text: UILabel, fontSize: CGFloat) {
-//        text.cen
         text.textColor = UIColor.white
         text.font = UIFont(name: "Futura", size: fontSize)
         text.backgroundColor = UIColor.white.withAlphaComponent(0)
@@ -178,8 +248,16 @@ class QueueViewController: UIViewController{
     
     fileprivate func setupButtonConstraints() {
         queueButton.bottomAnchor.constraint(equalTo: view.bottomAnchor,
-                                            constant: CGFloat(-1 * edgePadding!)).isActive = true
+                                            constant: CGFloat(-1 * edgePadding)).isActive = true
         queueButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        queueButton.addTarget(self, action: #selector(queueButtonTapped), for: .touchUpInside)
+        queueButton.addTarget(self, action: #selector(normalQueueButtonTapped), for: .touchUpInside)
     }
+    
+    fileprivate func setupPremiumQueueButtonConstraints() {
+        premiumQueueButton.bottomAnchor.constraint(equalTo: queueButton.topAnchor,
+                                                   constant: -view.frame.width * 0.05).isActive = true
+        premiumQueueButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        premiumQueueButton.addTarget(self, action: #selector(queueButtonTapped), for: .touchUpInside)
+    }
+    
 }

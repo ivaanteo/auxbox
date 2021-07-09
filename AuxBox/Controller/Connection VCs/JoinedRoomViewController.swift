@@ -28,18 +28,39 @@ class JoinedRoomViewController:UIViewController{
     let continueButton = UIButton()
     let endSessionButton = UIButton()
     let buttonStackView = UIStackView()
+    let loadingSpinner = UIActivityIndicatorView()
     
     @objc func continueTapped(sender: UIButton!){
         self.dismiss(animated: true, completion: nil)
     }
     @objc func leaveSessionTapped(sender: UIButton!){
+        self.showActivityIndicator(activityView: loadingSpinner)
         // delete room
 //        DatabaseManager.shared.deleteActiveRoom()
         // update user
         guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {return}
-        DatabaseManager.shared.updateRoomUsers(auxCode: auxCode, create: false)
-        DatabaseManager.shared.deleteJoinedRoom()
-        self.dismiss(animated: true, completion: nil)
+//        DatabaseManager.shared.updateRoomUsers(auxCode: auxCode, create: false)
+//        DatabaseManager.shared.deleteJoinedRoom()
+        DatabaseManager.shared.batchJoinRoom(auxCode: auxCode, room: nil, exitRoom: true) { (err) in
+            guard err == nil else {
+                // present error
+                DispatchQueue.main.async {
+                    self.presentAlert(title: "Oops!", message: "Error exiting room: \(err!.localizedDescription)")
+                    self.hideActivityIndicator(activityView: self.loadingSpinner)
+                }
+                return }
+            // no error, go ahead and dismiss
+            DispatchQueue.main.async { [weak self] in
+                self?.hideActivityIndicator(activityView: self!.loadingSpinner)
+                self?.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+    
+    private func presentAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertController.Style.alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
     override func viewDidLoad(){
@@ -48,6 +69,7 @@ class JoinedRoomViewController:UIViewController{
         let backgroundLayer = Colors().gl
         backgroundLayer?.frame = view.frame
         view.layer.insertSublayer(backgroundLayer!, at: 0)
+        
 
 //        setupText(roomNameLabel, displayText: "Room name", fontSize: 22)
 //        setupText(roomNameDescLabel, displayText: roomNameDesc!, fontSize: 28)

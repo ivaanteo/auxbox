@@ -26,7 +26,10 @@ class QueuePresentationController: UIPresentationController{
     override var frameOfPresentedViewInContainerView: CGRect{
 //        return CGRect(origin: CGPoint(x: 0, y: self.containerView!.frame.height * 0.3), size: CGSize(width: self.containerView!.frame.width, height: self.containerView!.frame.height * 0.7))
 //        return CGRect(origin: CGPoint(x: 0, y: 100), size: CGSize(width: self.containerView!.frame.width, height: 700))
-        presentationHeight = self.containerView!.frame.width * 1.5
+        
+//        presentationHeight = self.containerView!.frame.width * 1.5
+        presentationHeight = self.containerView!.frame.width * 1.7
+        
         return CGRect(x: 0, y: (self.containerView!.frame.height - presentationHeight!), width: (self.containerView?.frame.width)!, height: presentationHeight!)
     }
     override func dismissalTransitionWillBegin() {

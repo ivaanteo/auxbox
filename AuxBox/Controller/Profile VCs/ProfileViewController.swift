@@ -23,8 +23,12 @@ class ProfileViewController:UIViewController{
     let cache = SpotifyAuthManager.shared.cache
     
     // Views
+    
+    //Buttons
     let logoutButton = NextButton()
     let connectSpotifyButton = NextButton()
+    let transactionsButton = NextButton()
+    
     let profilePictureView = UIImageView()
     let stackView = UIStackView()
     
@@ -34,9 +38,11 @@ class ProfileViewController:UIViewController{
     let creditsLabel = UILabel()
     let detailsView = UIView()
     
+    
+    
     var userDetails: UserDetails?{
         didSet{
-            if let imageURL = userDetails!.profilePictureURL{
+            if let imageURL = userDetails?.profilePictureURL{
                 print("imageURL \(imageURL)")
                 let cacheKey = NSString(string: imageURL)
                 if let img = cache.object(forKey: cacheKey){
@@ -79,29 +85,25 @@ class ProfileViewController:UIViewController{
         presentSafariVC(with: url)
     }
     
+    @objc func transactionsTapped(sender: UIButton!){
+        let transactionsVC = TransactionsViewController()
+        navigationController?.pushViewController(transactionsVC, animated: true)
+    }
+    
     override func viewDidLoad() {
         view.backgroundColor = UIColor(named: "bgColour")
 //        setupNextButton(logoutButton, "Log Out")
         logoutButton.setupNextButton(title: "Log Out", fontSize: 16, width: buttonWidth, height: buttonHeight)
         logoutButton.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
-//        view.addSubview(logoutButton)
-//        logoutButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-//        logoutButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor).isActive = true
         
-        
-//        setupNextButton(connectSpotifyButton, "Connect Spotify")
         connectSpotifyButton.setupNextButton(title: "Connect Spotify", fontSize: 16, width: buttonWidth, height: buttonHeight)
-        
         connectSpotifyButton.addTarget(self, action: #selector(connectSpotifyTapped), for: .touchUpInside)
         connectSpotifyButton.translatesAutoresizingMaskIntoConstraints = false
-//        view.addSubview(connectSpotifyButton)
-//        connectSpotifyButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-//        connectSpotifyButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: -70).isActive = true
         
-        
-        
-//        profilePictureView.image = UIImage(systemName: "person")
+        transactionsButton.setupNextButton(title: "Transactions", fontSize: 16, width: buttonWidth, height: buttonHeight)
+        transactionsButton.addTarget(self, action: #selector(transactionsTapped), for: .touchUpInside)
+        transactionsButton.translatesAutoresizingMaskIntoConstraints = false
         
 //        fetchUserData()
 //        profilePictureView.frame = CGRect(x: 0, y: 0, width: profilePictureSize, height: profilePictureSize)
@@ -152,6 +154,7 @@ class ProfileViewController:UIViewController{
         nameLabel.topAnchor.constraint(equalTo: detailsView.topAnchor).isActive = true
         nameLabel.leadingAnchor.constraint(equalTo: detailsView.leadingAnchor).isActive = true
         nameLabel.bottomAnchor.constraint(equalTo: editProfileButton.topAnchor).isActive = true
+        nameLabel.widthAnchor.constraint(equalToConstant: buttonWidth-20).isActive = true
         
 //        nameLabel.trailingAnchor.constraint(equalTo: creditsLabel.leadingAnchor).isActive = true
         
@@ -172,6 +175,7 @@ class ProfileViewController:UIViewController{
         stackView.addArrangedSubview(profileContainerView)
         stackView.addArrangedSubview(detailsView)
         stackView.addArrangedSubview(connectSpotifyButton)
+        stackView.addArrangedSubview(transactionsButton)
         stackView.addArrangedSubview(logoutButton)
         view.addSubview(stackView)
     }

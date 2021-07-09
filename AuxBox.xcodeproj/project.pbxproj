@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C0DACBB2695E3D000C84EDE /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0DACBA2695E3D000C84EDE /* TransactionsViewController.swift */; };
+		2C0DACBE26960C7D00C84EDE /* TransactionsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0DACBD26960C7D00C84EDE /* TransactionsTableViewCell.swift */; };
+		2C0DACC126960CFB00C84EDE /* TransactionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0DACC026960CFB00C84EDE /* TransactionModel.swift */; };
+		2C0DACC426960DDA00C84EDE /* TransactionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0DACC326960DDA00C84EDE /* TransactionViewModel.swift */; };
 		2C13591A268E0A7100EA1780 /* NearbyRoomsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C135919268E0A7100EA1780 /* NearbyRoomsViewModel.swift */; };
 		2C13591E268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C13591D268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift */; };
 		2C2FB8752667DAD9002705AD /* PlaylistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2FB8742667DAD9002705AD /* PlaylistModel.swift */; };
@@ -49,9 +53,11 @@
 		2C88E5502637C5CA0072B7F7 /* LocationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C88E54F2637C5CA0072B7F7 /* LocationViewController.swift */; };
 		2C88E55B2637D14C0072B7F7 /* NowPlayingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C88E55A2637D14C0072B7F7 /* NowPlayingViewController.swift */; };
 		2C88E55E2637D1CB0072B7F7 /* GradientLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C88E55D2637D1CB0072B7F7 /* GradientLayer.swift */; };
+		2C98D55B26936A3C0057B026 /* TwoLineTransparentButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C98D55A26936A3C0057B026 /* TwoLineTransparentButton.swift */; };
 		2C9924012636564F00BEB4D6 /* EmailConfirmationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9924002636564F00BEB4D6 /* EmailConfirmationViewController.swift */; };
 		2C99240F26366C1300BEB4D6 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C99240E26366C1300BEB4D6 /* HomeViewController.swift */; };
 		2C99242E26369BBE00BEB4D6 /* UserDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C99242D26369BBE00BEB4D6 /* UserDetails.swift */; };
+		2C9CC93726949B8E00ABAA94 /* ViewControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9CC93626949B8E00ABAA94 /* ViewControllerExtensions.swift */; };
 		2CA12EFE2651120800B55996 /* JoinedRoomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA12EFD2651120800B55996 /* JoinedRoomViewController.swift */; };
 		2CA12F03265128E200B55996 /* NowPlayingSubview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA12F02265128E200B55996 /* NowPlayingSubview.swift */; };
 		2CBC2467265B86D900347F07 /* ErrorHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBC2466265B86D900347F07 /* ErrorHelpers.swift */; };
@@ -68,6 +74,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C0DACBA2695E3D000C84EDE /* TransactionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsViewController.swift; sourceTree = "<group>"; };
+		2C0DACBD26960C7D00C84EDE /* TransactionsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsTableViewCell.swift; sourceTree = "<group>"; };
+		2C0DACC026960CFB00C84EDE /* TransactionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionModel.swift; sourceTree = "<group>"; };
+		2C0DACC326960DDA00C84EDE /* TransactionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionViewModel.swift; sourceTree = "<group>"; };
 		2C135919268E0A7100EA1780 /* NearbyRoomsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyRoomsViewModel.swift; sourceTree = "<group>"; };
 		2C13591D268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyRoomsTableViewCell.swift; sourceTree = "<group>"; };
 		2C2FB8742667DAD9002705AD /* PlaylistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistModel.swift; sourceTree = "<group>"; };
@@ -113,9 +123,11 @@
 		2C88E54F2637C5CA0072B7F7 /* LocationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationViewController.swift; sourceTree = "<group>"; };
 		2C88E55A2637D14C0072B7F7 /* NowPlayingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingViewController.swift; sourceTree = "<group>"; };
 		2C88E55D2637D1CB0072B7F7 /* GradientLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientLayer.swift; sourceTree = "<group>"; };
+		2C98D55A26936A3C0057B026 /* TwoLineTransparentButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoLineTransparentButton.swift; sourceTree = "<group>"; };
 		2C9924002636564F00BEB4D6 /* EmailConfirmationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailConfirmationViewController.swift; sourceTree = "<group>"; };
 		2C99240E26366C1300BEB4D6 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		2C99242D26369BBE00BEB4D6 /* UserDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDetails.swift; sourceTree = "<group>"; };
+		2C9CC93626949B8E00ABAA94 /* ViewControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtensions.swift; sourceTree = "<group>"; };
 		2CA12EFD2651120800B55996 /* JoinedRoomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinedRoomViewController.swift; sourceTree = "<group>"; };
 		2CA12F02265128E200B55996 /* NowPlayingSubview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingSubview.swift; sourceTree = "<group>"; };
 		2CBC2466265B86D900347F07 /* ErrorHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHelpers.swift; sourceTree = "<group>"; };
@@ -146,6 +158,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2C0DACB92695E3BC00C84EDE /* Profile VCs */ = {
+			isa = PBXGroup;
+			children = (
+				2C88E54C2637BB7E0072B7F7 /* ProfileViewController.swift */,
+				2C0DACBA2695E3D000C84EDE /* TransactionsViewController.swift */,
+			);
+			path = "Profile VCs";
+			sourceTree = "<group>";
+		};
 		2C28340E265BD8F3003E4566 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
@@ -190,6 +211,9 @@
 				2C64D43126668BA6002DF2A9 /* NowPlayingCollectionReusableView.swift */,
 				2CFB459626725F330038C9E2 /* QueueSongsTableView.swift */,
 				2C13591D268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift */,
+				2C98D55A26936A3C0057B026 /* TwoLineTransparentButton.swift */,
+				2C9CC93626949B8E00ABAA94 /* ViewControllerExtensions.swift */,
+				2C0DACBD26960C7D00C84EDE /* TransactionsTableViewCell.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -202,7 +226,7 @@
 				2CA12F002651120C00B55996 /* Connection VCs */,
 				2CE2CA6B265FD004001AF405 /* Now Playing VCs */,
 				2C5020CA266F729300F5D5D8 /* Playlist VCs */,
-				2C88E54C2637BB7E0072B7F7 /* ProfileViewController.swift */,
+				2C0DACB92695E3BC00C84EDE /* Profile VCs */,
 				2CA12F02265128E200B55996 /* NowPlayingSubview.swift */,
 				2C6CFEA22639AA5800000468 /* LinkAccountViewController.swift */,
 				2CDC45B32648D931006CCAD3 /* SpotifySDKStuff.swift */,
@@ -222,6 +246,8 @@
 				2CDC45F9264AC421006CCAD3 /* RoomModel.swift */,
 				2C2FB8742667DAD9002705AD /* PlaylistModel.swift */,
 				2C680F4826692B580028FFD2 /* PlaylistDetails.swift */,
+				2C0DACC026960CFB00C84EDE /* TransactionModel.swift */,
+				2C0DACC326960DDA00C84EDE /* TransactionViewModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -455,6 +481,7 @@
 				2C13591A268E0A7100EA1780 /* NearbyRoomsViewModel.swift in Sources */,
 				2CE347EA26525DE700064D7C /* TransparentButton.swift in Sources */,
 				2CDC45BB264A786D006CCAD3 /* ConnectionStatusViewController.swift in Sources */,
+				2C98D55B26936A3C0057B026 /* TwoLineTransparentButton.swift in Sources */,
 				2C5020CC266F72B100F5D5D8 /* PlaylistTableViewController.swift in Sources */,
 				2C6CFEA02639AA4400000468 /* SpotifyAuthManager.swift in Sources */,
 				2C2FB8752667DAD9002705AD /* PlaylistModel.swift in Sources */,
@@ -463,8 +490,10 @@
 				2C5393E1263AFADA00B39039 /* SongResultsTableViewCell.swift in Sources */,
 				2C4A4F582643B3B100006968 /* RequestToken.swift in Sources */,
 				2C5020D5266FB4E200F5D5D8 /* StretchyTableHeader.swift in Sources */,
+				2C0DACBB2695E3D000C84EDE /* TransactionsViewController.swift in Sources */,
 				2CA12EFE2651120800B55996 /* JoinedRoomViewController.swift in Sources */,
 				2C63281F2635372700E9BA51 /* PaddedTextField.swift in Sources */,
+				2C9CC93726949B8E00ABAA94 /* ViewControllerExtensions.swift in Sources */,
 				2C6A7E97262964C900055A6F /* LoginViewController.swift in Sources */,
 				2CDC45B42648D931006CCAD3 /* SpotifySDKStuff.swift in Sources */,
 				2C13591E268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift in Sources */,
@@ -477,6 +506,8 @@
 				2CFB459726725F330038C9E2 /* QueueSongsTableView.swift in Sources */,
 				2C6A7E95262964C900055A6F /* SceneDelegate.swift in Sources */,
 				2C99240F26366C1300BEB4D6 /* HomeViewController.swift in Sources */,
+				2C0DACBE26960C7D00C84EDE /* TransactionsTableViewCell.swift in Sources */,
+				2C0DACC426960DDA00C84EDE /* TransactionViewModel.swift in Sources */,
 				2C88E54D2637BB7E0072B7F7 /* ProfileViewController.swift in Sources */,
 				2C2FB8782667E326002705AD /* InnerShadow.swift in Sources */,
 				2CDC45FA264AC421006CCAD3 /* RoomModel.swift in Sources */,
@@ -494,6 +525,7 @@
 				2C5393DB263AF69600B39039 /* SearchResultsViewController.swift in Sources */,
 				2C64D42F266688FC002DF2A9 /* HomeCollectionViewCell.swift in Sources */,
 				2C4A4F5B2643D83100006968 /* SearchResultsErrorViewController.swift in Sources */,
+				2C0DACC126960CFB00C84EDE /* TransactionModel.swift in Sources */,
 				2CE2CA6F265FEB15001AF405 /* CurrentQueueCell.swift in Sources */,
 				2CA12F03265128E200B55996 /* NowPlayingSubview.swift in Sources */,
 				2C63281B2635085100E9BA51 /* EmailViewController.swift in Sources */,

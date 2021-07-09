@@ -306,7 +306,6 @@ final class SpotifyAuthManager
                         PlaylistDetails(name: item.name!, imgURL: item.images?[0].url, playlistID: item.id ?? "")
                     })
                     
-                    
                     print("fetch song details")
                     completed(.success(playlistDetails)); return
                 } catch {
@@ -373,6 +372,13 @@ final class SpotifyAuthManager
         }
     }
     
+    func normalQueueSong(uri: String){
+        self.getRefreshToken { (token) in
+            guard let token = token else { return }
+            self.queueSong(uri: uri, token)
+        }
+    }
+    
     private func queueSong(uri: String,_ token: String){
         guard let url = URL(string: "\(SpotifyAPI.baseURL)me/player/queue?uri=\(uri)") else {return}
         var request         = URLRequest(url: url)
@@ -381,6 +387,7 @@ final class SpotifyAuthManager
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error            = error { print("queueSong error: \(error)"); return }
             guard let unwrappedResponse  = response as? HTTPURLResponse else { print("Queue Song Error"); return }
+            print("unwrappedResponse \(unwrappedResponse)")
             //            guard let data      = data else { print("start playback: data"); return }
         }
         task.resume()
@@ -396,7 +403,7 @@ final class SpotifyAuthManager
         }
 //        let cacheKey    = NSString(string: urlString)
         // here we check if image has been cached
-        if let image    = cache.object(forKey: cacheKey!) {print("usedcache"); completed(image);return }
+        if let image    = cache.object(forKey: cacheKey!) {completed(image);return }
         guard let url   = URL(string: urlString) else {completed(defaultImage); return }
         
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in

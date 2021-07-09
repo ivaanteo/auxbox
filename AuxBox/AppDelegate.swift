@@ -34,7 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().barTintColor = UIColor(named: "bgColour")
         UINavigationBar.appearance().tintColor = UIColor(named: "auxOrange")
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(white: 1, alpha: 1)]
-
+        
             // check if user is logged
         
         
