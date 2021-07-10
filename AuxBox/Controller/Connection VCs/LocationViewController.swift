@@ -38,7 +38,7 @@ class LocationViewController:UIViewController{
     
     private lazy var nearbyRoomsLabel = UILabel()
 
-    private var nearbyTableView: UITableView!
+    private var nearbyTableView = UITableView()
     private let refreshControl = UIRefreshControl()
     
     private lazy var combinedView = UIView()
@@ -461,7 +461,7 @@ class LocationViewController:UIViewController{
     }
     
     fileprivate func setupTableView(){
-        nearbyTableView = UITableView()
+//        nearbyTableView = UITableView()
         nearbyTableView.delegate = self
         nearbyTableView.dataSource = self
         nearbyTableView.register(NearbyRoomsTableViewCell.self, forCellReuseIdentifier: NearbyRoomsTableViewCell.cellIdentifier)

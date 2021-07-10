@@ -15,6 +15,8 @@
 		2C13591E268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C13591D268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift */; };
 		2C2FB8752667DAD9002705AD /* PlaylistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2FB8742667DAD9002705AD /* PlaylistModel.swift */; };
 		2C2FB8782667E326002705AD /* InnerShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2FB8772667E326002705AD /* InnerShadow.swift */; };
+		2C3F30992698373300E3AC28 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3F30982698373300E3AC28 /* TabBarController.swift */; };
+		2C3F309C26983CF900E3AC28 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3F309B26983CF900E3AC28 /* SearchViewController.swift */; };
 		2C4A4F582643B3B100006968 /* RequestToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4A4F572643B3B100006968 /* RequestToken.swift */; };
 		2C4A4F5B2643D83100006968 /* SearchResultsErrorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4A4F5A2643D83100006968 /* SearchResultsErrorViewController.swift */; };
 		2C5020CC266F72B100F5D5D8 /* PlaylistTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5020CB266F72B100F5D5D8 /* PlaylistTableViewController.swift */; };
@@ -82,6 +84,8 @@
 		2C13591D268F06CB00EA1780 /* NearbyRoomsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyRoomsTableViewCell.swift; sourceTree = "<group>"; };
 		2C2FB8742667DAD9002705AD /* PlaylistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistModel.swift; sourceTree = "<group>"; };
 		2C2FB8772667E326002705AD /* InnerShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InnerShadow.swift; sourceTree = "<group>"; };
+		2C3F30982698373300E3AC28 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
+		2C3F309B26983CF900E3AC28 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		2C4A4F572643B3B100006968 /* RequestToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestToken.swift; sourceTree = "<group>"; };
 		2C4A4F5A2643D83100006968 /* SearchResultsErrorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsErrorViewController.swift; sourceTree = "<group>"; };
 		2C5020CB266F72B100F5D5D8 /* PlaylistTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTableViewController.swift; sourceTree = "<group>"; };
@@ -185,6 +189,14 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		2C3F3097269836F200E3AC28 /* Tab VC */ = {
+			isa = PBXGroup;
+			children = (
+				2C3F30982698373300E3AC28 /* TabBarController.swift */,
+			);
+			path = "Tab VC";
+			sourceTree = "<group>";
+		};
 		2C5020CA266F729300F5D5D8 /* Playlist VCs */ = {
 			isa = PBXGroup;
 			children = (
@@ -221,6 +233,7 @@
 		2C6328182635081300E9BA51 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				2C3F3097269836F200E3AC28 /* Tab VC */,
 				2CA12F0926515EE500B55996 /* Login VCs */,
 				2CE347E72652547300064D7C /* Search VCs */,
 				2CA12F002651120C00B55996 /* Connection VCs */,
@@ -339,6 +352,7 @@
 				2C76067F263C2C4D0083D591 /* QueuePresentationController.swift */,
 				2C760683263C38F70083D591 /* QueueViewController.swift */,
 				2C4A4F5A2643D83100006968 /* SearchResultsErrorViewController.swift */,
+				2C3F309B26983CF900E3AC28 /* SearchViewController.swift */,
 			);
 			path = "Search VCs";
 			sourceTree = "<group>";
@@ -478,6 +492,7 @@
 			files = (
 				2CBC2467265B86D900347F07 /* ErrorHelpers.swift in Sources */,
 				2CE347ED265263C500064D7C /* CustomLabel.swift in Sources */,
+				2C3F30992698373300E3AC28 /* TabBarController.swift in Sources */,
 				2C13591A268E0A7100EA1780 /* NearbyRoomsViewModel.swift in Sources */,
 				2CE347EA26525DE700064D7C /* TransparentButton.swift in Sources */,
 				2CDC45BB264A786D006CCAD3 /* ConnectionStatusViewController.swift in Sources */,
@@ -505,6 +520,7 @@
 				2C6A7E93262964C900055A6F /* AppDelegate.swift in Sources */,
 				2CFB459726725F330038C9E2 /* QueueSongsTableView.swift in Sources */,
 				2C6A7E95262964C900055A6F /* SceneDelegate.swift in Sources */,
+				2C3F309C26983CF900E3AC28 /* SearchViewController.swift in Sources */,
 				2C99240F26366C1300BEB4D6 /* HomeViewController.swift in Sources */,
 				2C0DACBE26960C7D00C84EDE /* TransactionsTableViewCell.swift in Sources */,
 				2C0DACC426960DDA00C84EDE /* TransactionViewModel.swift in Sources */,

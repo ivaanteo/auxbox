@@ -16,15 +16,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
     private let redirectUri = URL(string:"AuxBox://")!
     private let clientIdentifier = "674cd699c32e453ca39240861f9b2a3f"
     
-    let navController = UINavigationController(rootViewController: HomeViewController())
+    
+    let tabController = TabBarController()
+    
+//    let navController = UINavigationController(rootViewController: HomeViewController())
 //    var firstLoad = true
     var homeVC: HomeViewController{
         get{
-            navController.children[0] as! HomeViewController
-//            navController.topViewController as! HomeViewController
+//            navController.children[0] as! HomeViewController
+            let homeNavViewController = tabController.viewControllers![0] as! UINavigationController
+            let homeViewController = homeNavViewController.children[0] as! HomeViewController
+//            let selectedNavVC = tabController.selectedViewController as! UINavigationController
+//            if selectedNavVC.topViewController is HomeViewController {
+//            let homeViewController = selectedNavVC.topViewController as! HomeViewController
+            return homeViewController
         }
     }
     
+    // WANT TO REMOVE THIS
     var locationVC: LocationViewController{
         get{
 //            if homeVC.navLocVC.topViewController is LocationViewController{
@@ -35,6 +44,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
 //            if let locationVC = homeVC.navLocVC.topViewController as! LocationViewController{
 //                return locationVC
 //            }
+            
             return homeVC.navLocVC.children[0] as! LocationViewController
         }
     }
@@ -76,7 +86,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
         
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
-        window?.rootViewController = navController
+//        window?.rootViewController = navController
+        window?.rootViewController = tabController
         window?.makeKeyAndVisible()
         
     }
@@ -166,6 +177,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
             print("executes LocationVC.finishCreatingRoom")
         }
         
+        guard let navLocVC = tabController.presentedViewController as? UINavigationController else {
+            // likely this will pass because all presented view controllers are navigation controllers
+            return }
+        guard let locVC = navLocVC.topViewController as? LocationViewController else {
+            print("not location vc")
+            return }
+        locVC.finishCreatingRoom()
+        
+        
         
 //        if homeVC.navLocVC.topViewController is LocationViewController && !firstLoad{
 //            locationVC.finishCreatingRoom()
@@ -191,15 +211,51 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if homeVC.navLocVC.topViewController is LocationViewController{
-            locationVC.retrievedLocation(location: locations[0])
-        }else{
-            print("updating location: ", locations[0])
-//            print(locations[0].coordinate)
-            // update database every 2 mins? ye prolly or every song change... ye thats about right
-            // wait if dudes not playing any song then....... idk
+        
+        guard let navLocVC = tabController.presentedViewController as? UINavigationController else {
+            // likely this will pass because all presented view controllers are navigation controllers
+            return }
+        guard let locVC = navLocVC.topViewController as? LocationViewController else {
+            print("not location vc")
+            // means that location update comes from hosting room
             DatabaseManager.shared.updateLocation(location: locations[0])
-        }
+            return }
+        // if its indeed location vc, go ahead and retrieve what you need
+        locVC.retrievedLocation(location: locations[0])
+        
+        
+        
+//        if homeVC.navLocVC.topViewController is LocationViewController{
+//            locationVC.retrievedLocation(location: locations[0])
+//        }else{
+//            print("updating location: ", locations[0])
+////            print(locations[0].coordinate)
+//            // update database every 2 mins? ye prolly or every song change... ye thats about right
+//            // wait if dudes not playing any song then....... idk
+//            DatabaseManager.shared.updateLocation(location: locations[0])
+//        }
+        
+//        print("selected vc: \(String(describing: type(of: tabController.selectedViewController.self)) )")
+//        print("presented vc: \(String(describing: type(of: tabController.presentedViewController.self)) )")
+//        print("selected vc: \(NSStringFromClass(tabController.selectedViewController!.classForCoder))")
+//        print("presented vc: \(NSStringFromClass(tabController.presentedViewController!.classForCoder))")
+        
+//        print("selected vc: \(NSStringFromClass(tabController.selectedViewController))")
+        
+//        let selectedNavVC = tabController.presentedViewController as! UINavigationController
+//        print("presentedViewController: \(NSStringFromClass(selectedNavVC.topViewController!.classForCoder))")
+//        let locVC = selectedNavVC.topViewController as! LocationViewController
+//        locVC.retrievedLocation(location: locations[0])
+        
+//        let selectedNavVC = tabController.selectedViewController as! UINavigationController
+//        let homeViewController = selectedNavVC.topViewController as! HomeViewController
+//        if homeVC.navLocVC.topViewController is LocationViewController{
+//            let locVC = homeViewController.navLocVC.topViewController as! LocationViewController
+//            locVC.retrievedLocation(location: locations[0])
+//        }else{
+//            DatabaseManager.shared.updateLocation(location: locations[0])
+//        }
+        
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
