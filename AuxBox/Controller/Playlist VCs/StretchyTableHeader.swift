@@ -19,6 +19,8 @@ class StretchyTableHeaderView: UIView {
     
     var containerViewHeight = NSLayoutConstraint()
     
+    var getMoreSongs: (()->())?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -84,7 +86,7 @@ class StretchyTableHeaderView: UIView {
         imageViewHeight.isActive = true
         playlistLabelBottom = playlistLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20)
         playlistLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20).isActive = true
-        playlistLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: 20).isActive = true
+        playlistLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20).isActive = true
         // Label Constraints
         playlistLabel.translatesAutoresizingMaskIntoConstraints = false
         playlistLabelBottom.isActive = true
@@ -103,5 +105,8 @@ class StretchyTableHeaderView: UIView {
         
 //        imageViewBottom.constant = offsetY >= 0 ? 0 : -offsetY / 2
 //        imageViewHeight.constant = max(offsetY + scrollView.contentInset.top, scrollView.contentInset.top)
+        
     }
+    
+    
 }

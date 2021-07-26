@@ -46,7 +46,6 @@ enum PersistenceManager
         }
     }
 
-
     // Retrieves refresh token from userDefaults
     static func retrieveRefreshToken() -> String
     {
@@ -101,5 +100,36 @@ enum PersistenceManager
         } catch {
             return nil
         }
+    }
+    
+    static func retrieveSpotifyID() -> String{
+        guard let spotifyId = defaults.object(forKey: Key.spotifyId) as? String else {return ""}
+        return spotifyId
+    }
+    
+    static func setSpotifyId(id: String){
+        defaults.set(id, forKey: Key.spotifyId)
+    }
+    
+    static func setEmailVerificationSent(){
+        let time = Date().timeIntervalSince1970
+        defaults.set(time, forKey: Key.emailVerificationTime)
+    }
+    
+    static func canResendEmailVerification() -> Bool{
+        let time = Date().timeIntervalSince1970
+        // object not set
+        guard let sentTime = defaults.object(forKey: Key.emailVerificationTime) as? TimeInterval else { return true }
+        return time-sentTime > Double(K.timeBetweenEmails)
+    }
+    
+    static func setEmailLoginVerified(loggedIn: Bool){
+        defaults.set(loggedIn, forKey: Key.emailLoginVerified)
+    }
+    
+    static func emailLoginAndVerified() -> Bool{
+        guard let isVerified = defaults.object(forKey: Key.emailLoginVerified) as? Bool else { return false }
+        print("is verified: \(isVerified)")
+        return isVerified
     }
 }

@@ -8,7 +8,7 @@
 import UIKit
 
 class NowPlayingSubview:UIView{
-    var song : SongDetails? {
+    var song : SongViewModel? {
         didSet {
             if let imgURL = song?.image{
 //                if let url = URL(string: imgURL){

@@ -17,11 +17,12 @@ class DatabaseManager{
 //    static var roomDetails:Room? = nil
 //    static var user: UserDetails? = nil
     
-    var roomDetails:Room? = nil
+    var roomDetails:RoomModel? = nil
     var user: UserDetails? = nil
     
     static let shared = DatabaseManager()
     private let db = Firestore.firestore()
+    private let storage = Storage.storage()
     static var listener : ListenerRegistration?
     
     var locationManager: CLLocationManager {
@@ -35,11 +36,12 @@ class DatabaseManager{
     
 //    func saveUser(user: User, completed: @escaping (String?) -> Void){
     func saveUser(user: User, completed: @escaping (UserDetails?) -> Void){
-        
-        
-        guard let profilePic = user.photoURL?.absoluteString else { return }
-        guard let displayName = user.displayName else { return }
-        guard let email = user.email else { return }
+//        guard let profilePic = user.photoURL?.absoluteString else { return }
+        guard let displayName = user.displayName else { print("no name"); return }
+//        let displayName = user.displayName ?? "No Name"
+        // right now, facebook doesn't allow email so use uid instead
+        let email = user.email ?? user.uid
+//        guard let email = user.email else { return }
         
         let usersRef = self.db.collection(K.FStore.usersCollection).document(user.uid)
         usersRef.getDocument { (document, error) in
@@ -67,7 +69,7 @@ class DatabaseManager{
                 let auxCode = self.getVerifiedAuxCode()
                 let userDetails = UserDetails(name: displayName,
                                               email: email,
-                                              profilePictureURL: profilePic,
+                                              profilePictureURL: user.photoURL?.absoluteString,
                                               auxCode: auxCode,
                                               joinedRoom: nil,
                                               credits: 2
@@ -91,7 +93,26 @@ class DatabaseManager{
         }
     }
     
-    func addDatabaseListener(auxCode: String, completed: @escaping (Room?) -> Void){
+    func updateUserProfile(user: UserDetails, completed: @escaping ((Result<Void, NetworkError>) -> ()) ){
+        guard let uid = Auth.auth().currentUser?.uid else { completed(.failure(.invalidAccount)); return }
+        let userRef = db.collection(K.FStore.usersCollection).document(uid)
+        let batch = db.batch()
+        if let name = user.name{
+            batch.updateData(["name": name], forDocument: userRef)
+        }
+        if let profilePicURL = user.profilePictureURL{
+            batch.updateData(["profilePictureURL": profilePicURL], forDocument: userRef)
+        }
+        batch.commit(){ err in
+            guard err == nil else {
+                completed(.failure(.requestError))
+                return
+            }
+            completed(.success(()))
+        }
+    }
+    
+    func addDatabaseListener(auxCode: String, completed: @escaping (RoomModel?) -> Void){
         DatabaseManager.listener = db.collection(K.FStore.roomsCollection).document(auxCode)
             .addSnapshotListener { documentSnapshot, error in
                 guard let document = documentSnapshot else {
@@ -100,7 +121,7 @@ class DatabaseManager{
                     return
                 }
                 let result = Result {
-                    try document.data(as: Room.self)
+                    try document.data(as: RoomModel.self)
                 }
                 switch result {
                 case .success(let room):
@@ -152,6 +173,21 @@ class DatabaseManager{
         }
     }
     
+    func purchaseCoins(coins: Double, completed: @escaping (Result<Void, NetworkError>) -> ()){
+        guard let uid = Auth.auth().currentUser?.uid else { completed(.failure(.invalidAccount)); return }
+        // increase credit
+        db.collection(K.FStore.usersCollection).document(uid).updateData(["credits": FieldValue.increment(coins)]){ err in
+            if let err = err {
+                print("Error updating document: \(err)")
+                completed(.failure(.requestError))
+            } else {
+                print("updateUserRoom successfully updated")
+                self.user?.credits += Int(coins)
+                completed(.success(()))
+            }
+        }
+    }
+    
     
     func getConnectedToAux(userUID: String, completed: @escaping (String?) -> Void){
         //        guard let userUID = Auth.auth().currentUser?.uid else{return}
@@ -180,10 +216,10 @@ class DatabaseManager{
     
     
     
-    func getRoomDetails(auxCode:String, completed: @escaping (Result<Room, NetworkError>) -> Void){
+    func getRoomDetails(auxCode:String, completed: @escaping (Result<RoomModel, NetworkError>) -> Void){
         db.collection(K.FStore.roomsCollection).document(auxCode).getDocument { (document, err) in
             let result = Result {
-                try document?.data(as: Room.self)
+                try document?.data(as: RoomModel.self)
             }
             
 //            do{
@@ -260,6 +296,7 @@ class DatabaseManager{
         }
     }
     
+    // Credits Transacted Here
     func updateRoomToQueue(uri: String, isPremiumQueue: Bool, recipientUID: String? = nil, completed: @escaping (Result<String, Error>)->Void){
         guard let auxCode = DatabaseManager.shared.user?.joinedRoom else {return}
         let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
@@ -353,7 +390,7 @@ class DatabaseManager{
         
     }
     
-    func updateEntireRoom(room: Room){
+    func updateEntireRoom(room: RoomModel){
         guard let auxCode = DatabaseManager.shared.user?.auxCode else { return }
         do{
             try db.collection(K.FStore.roomsCollection).document(auxCode).setData(from: room)
@@ -403,7 +440,7 @@ class DatabaseManager{
         roomRef.updateData(["currentQueue" : FieldValue.arrayRemove([songURIToRemove])])
     }
     
-    func updateRoomNowPlaying(nowPlaying: SongDetails){
+    func updateRoomNowPlaying(nowPlaying: SongViewModel){
         guard let auxCode = DatabaseManager.shared.user?.auxCode else { return }
         let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
         roomRef.updateData(["nowPlaying.songName" : nowPlaying.songName,
@@ -418,7 +455,7 @@ class DatabaseManager{
         }
     }
     
-    func batchStartActiveRoom(room: Room){
+    func batchStartActiveRoom(room: RoomModel){
         // should create a room and update user's joined room property to his own auxcode
         let batch = db.batch()
         
@@ -448,7 +485,7 @@ class DatabaseManager{
         }
     }
     
-    func batchJoinRoom(auxCode: String, room: Room?, exitRoom: Bool, completed: @escaping (Error?) -> Void){
+    func batchJoinRoom(auxCode: String, room: RoomModel?, exitRoom: Bool, completed: @escaping (Error?) -> Void){
         guard let userUID = Auth.auth().currentUser?.uid else{ print("error getting current user"); return}
         
         
@@ -486,7 +523,7 @@ class DatabaseManager{
         }
     }
     
-    func startActiveRoom(room: Room){
+    func startActiveRoom(room: RoomModel){
         // don't need to check that room exists since you're setting data, not creating another collection
         guard let auxCode = DatabaseManager.shared.user?.auxCode else { return }
         do{
@@ -666,7 +703,7 @@ class DatabaseManager{
         var updatedData = [NearbyRoomsViewModel]()
         for doc in data{
             let result = Result {
-                try doc.data(as: Room.self)
+                try doc.data(as: RoomModel.self)
             }
             
             switch result {
@@ -691,7 +728,22 @@ class DatabaseManager{
         completed(.success(updatedData))
     }
     
-    
+    // User
+    func storeProfileImage(image: UIImage?, completed: @escaping ((URL?) -> ())){
+        guard let image = image else { completed(nil);return }
+        guard let imageData = image.jpegData(compressionQuality: 1) else { completed(nil); return }
+        guard let userUID = Auth.auth().currentUser?.uid else { completed(nil); return }
+        let storageRef = storage.reference().child("profilePictures/\(userUID)")
+        storageRef.putData(imageData, metadata: nil) { (data, err) in
+            guard err == nil else { completed(nil); return }
+            storageRef.downloadURL { (url, err) in
+                guard let url = url else { completed(nil);return }
+                guard err == nil else { completed(nil);return }
+                completed(url)
+                return
+            }
+        }
+    }
     
     
     //    private func saveAuxCode(user: User, auxCode: String){

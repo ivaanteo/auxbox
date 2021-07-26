@@ -10,16 +10,15 @@ import UIKit
 class QueueSongsTableView: NSObject, UITableViewDataSource, UITableViewDelegate{
     
     var tableView: UITableView
-    var songData: [SongDetails]
+    var songData: [SongViewModel]
     weak var viewController: UIViewController?
+    var getMoreSongs: (()->())?
     
     @objc func queueButtonTapped(sender: UIButton!) {
         let queueVC = QueueViewController()
         queueVC.modalPresentationStyle = .custom
         queueVC.transitioningDelegate = self
         queueVC.song = songData[sender.tag]
-//        sender.alpha = 1.0
-//        sender.alpha = 0.5
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
           sender.alpha = 1.0
       }
@@ -36,7 +35,7 @@ class QueueSongsTableView: NSObject, UITableViewDataSource, UITableViewDelegate{
     }
     
     
-    init(viewController vc: UIViewController, tableView tv: UITableView, songData data: [SongDetails]){
+    init(viewController vc: UIViewController, tableView tv: UITableView, songData data: [SongViewModel]){
         songData = data
         tableView = tv
         viewController = vc
@@ -77,5 +76,11 @@ extension QueueSongsTableView: UIScrollViewDelegate {
         guard (self.tableView.tableHeaderView != nil) else { return }
         let headerView = self.tableView.tableHeaderView as! StretchyTableHeaderView
         headerView.scrollViewDidScroll(scrollView: scrollView)
+        
+        let newOffsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        if newOffsetY > contentHeight - scrollView.frame.size.height && newOffsetY > 0 {
+            self.getMoreSongs?()
+        }
     }
 }

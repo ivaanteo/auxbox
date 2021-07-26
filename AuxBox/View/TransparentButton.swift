@@ -23,4 +23,10 @@ extension UIButton{
         self.widthAnchor.constraint(equalToConstant: width).isActive = true
         self.heightAnchor.constraint(equalToConstant: height).isActive = true
     }
+    
+    func setupUnderlineTextButton(btnTitle: String, fontSize: CGFloat){
+        self.titleLabel?.font = UIFont(name: "Futura", size: fontSize)
+        self.setTitle(btnTitle, for: .normal)
+        self.setTitleColor(UIColor(named: K.Colours.offWhite)!, for: .normal)
+    }
 }

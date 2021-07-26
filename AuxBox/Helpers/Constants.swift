@@ -35,5 +35,6 @@ struct K{
         static let queuedSongText = "Great choice! Your song will played soon."
     }
     
+    static let timeBetweenEmails: Int = 60
     
 }

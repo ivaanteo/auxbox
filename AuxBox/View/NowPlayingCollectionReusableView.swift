@@ -9,7 +9,7 @@ import UIKit
 
 class NowPlayingCollectionReusableView: UICollectionReusableView {
     
-    static let identifier = "nowPlayingCollectionReusableView"
+    static let cellId = "nowPlayingCollectionReusableView"
     
     let browseLabel = UILabel()
     let nowPlayingSubView = NowPlayingSubview()

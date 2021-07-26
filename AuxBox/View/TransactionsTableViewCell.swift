@@ -67,7 +67,7 @@ class TransactionsTableViewCell:UITableViewCell{
         
         txnValueLabel.trailingAnchor.constraint(equalTo: coinImageView.leadingAnchor, constant: -5).isActive = true
         txnValueLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor).isActive = true
-        coinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20).isActive = true
+        coinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
         coinImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor).isActive = true
         coinImageView.widthAnchor.constraint(equalToConstant: 20).isActive = true
         coinImageView.heightAnchor.constraint(equalToConstant: 20).isActive = true
@@ -85,7 +85,7 @@ class TransactionsTableViewCell:UITableViewCell{
 //        stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10).isActive = true
 //        stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10).isActive = true
         stackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor).isActive = true
-        stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20).isActive = true
+        stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
     }
     
     required init?(coder: NSCoder) {

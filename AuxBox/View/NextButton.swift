@@ -29,11 +29,13 @@ class NextButton: UIButton{
 }
 
 extension NextButton {
-    func setupNextButton(title: String, fontSize: CGFloat, width: CGFloat, height: CGFloat){
+    func setupNextButton(title: String, fontSize: CGFloat, width: CGFloat, height: CGFloat, applyConstraints: Bool = true){
         self.setTitle(title, for: .normal)
         self.setTitleColor(.white, for: .normal)
         self.titleLabel?.font = UIFont(name: "Futura", size: fontSize)
-        self.widthAnchor.constraint(equalToConstant: width).isActive = true
-        self.heightAnchor.constraint(equalToConstant: height).isActive = true
+        if applyConstraints{
+            self.widthAnchor.constraint(equalToConstant: width).isActive = true
+            self.heightAnchor.constraint(equalToConstant: height).isActive = true
+        }
     }
 }

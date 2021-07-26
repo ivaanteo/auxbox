@@ -28,13 +28,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Settings.setAdvertiserTrackingEnabled(true)
         Settings.isAdvertiserIDCollectionEnabled = true
         
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.font: UIFont(name: "Futura", size: 17)!]
-        UINavigationBar.appearance().prefersLargeTitles = true
-        UINavigationBar.appearance().largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white, NSAttributedString.Key.font: UIFont(name: "Futura", size: 26)!]
-        UINavigationBar.appearance().barTintColor = UIColor(named: "bgColour")
-        UINavigationBar.appearance().tintColor = UIColor(named: "auxOrange")
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(white: 1, alpha: 1)]
-        
+//        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.font: UIFont(name: "Futura", size: 17)!, NSAttributedString.Key.foregroundColor: UIColor(white: 1, alpha: 1)]
+//        UINavigationBar.appearance().prefersLargeTitles = true
+//        UINavigationBar.appearance().largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white, NSAttributedString.Key.font: UIFont(name: "Futura", size: 26)!]
+//        UINavigationBar.appearance().barTintColor = UIColor(named: K.Colours.bgColour)
+//        UINavigationBar.appearance().tintColor = UIColor(named: K.Colours.orange)
+        UITabBar.appearance().barTintColor = UIColor(named: K.Colours.bgColour)
             // check if user is logged
         
         

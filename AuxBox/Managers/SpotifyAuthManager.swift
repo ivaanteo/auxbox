@@ -58,11 +58,9 @@ final class SpotifyAuthManager
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             
             if let _            = error { print("completeAuthorizeRequest: error"); return }
-            guard let response  = response as? HTTPURLResponse, response.statusCode == 200 else { print("completeAuthorizeRequest: response"); return }
-            //            guard let response  = response as? HTTPURLResponse else { print("completeAuthorizeRequest: response"); return }
+//            guard let response  = response as? HTTPURLResponse, response.statusCode == 200 else { print("completeAuthorizeRequest: response"); return }
+            guard let response  = response as? HTTPURLResponse else { print("completeAuthorizeRequest: response"); return }
             guard let data      = data else { print("completeAuthorizeRequest: data"); return }
-            
-            
             
             do {
                 let decoder                     = JSONDecoder()
@@ -138,6 +136,7 @@ final class SpotifyAuthManager
         let refreshToken = PersistenceManager.retrieveRefreshToken()
         if refreshToken == "" { return }
         
+        print("here")
         // headers
         let requestHeaders: [String:String] = [HeaderField.authorization : "Basic \(encodedID)",
                                                HeaderField.contentType : "application/x-www-form-urlencoded"]
@@ -184,7 +183,7 @@ final class SpotifyAuthManager
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let _            = error { print("start playback: error"); return }
             guard let response  = response as? HTTPURLResponse, response.statusCode == 200 else { print("startUserPlayback Error"); return }
-            guard let data      = data else { print("start playback: data"); return }
+            guard let _      = data else { print("start playback: data"); return }
             
             print("complete playback")
             //            do {
@@ -229,7 +228,7 @@ final class SpotifyAuthManager
         }
     }
     
-    func getSongDetails(trackURI: String, completed: @escaping (Result<SongDetails, NetworkError>) -> Void){
+    func getSongDetails(trackURI: String, completed: @escaping (Result<SongViewModel, NetworkError>) -> Void){
         guard let shortenedSongUri = trackURI.split(separator: ":").last else { return }
         self.getClientAccessToken { (token) in
             guard let token = token else { return }
@@ -261,7 +260,7 @@ final class SpotifyAuthManager
 //                                                  artist: songData.artists[0]?.name,
 //                                                  image: songData.album?.images[0]?.url,
 //                                                  uri: songData.uri!)
-                    let songDetails = SongDetails(songName: songData.name!, artist: songData.artists?[0].name ?? "", image: songData.album?.images[0].url ?? "", uri: songData.uri ?? "")
+                    let songDetails = SongViewModel(songName: songData.name!, artist: songData.artists?[0].name ?? "", image: songData.album?.images[0].url ?? "", uri: songData.uri ?? "")
                     
                     print("fetch song details")
                     completed(.success(songDetails)); return
@@ -274,7 +273,101 @@ final class SpotifyAuthManager
         }
     }
     
-    func getFeaturedPlaylists(numberOfPlaylists limit: Int, completed: @escaping (Result<[PlaylistDetails], NetworkError>) -> Void){
+    func getUserId(token: String, completed: @escaping (Result<String, NetworkError>) -> Void){
+        // save to user defaults
+        // check if already in user defaults
+        
+        // checks if id is not set yet. if set alr, just retrieve and return
+        guard PersistenceManager.retrieveSpotifyID() == "" else { completed(.success(PersistenceManager.retrieveSpotifyID())); return }
+        guard let url = URL(string: "\(SpotifyAPI.baseURL)me") else {return}
+            var request         = URLRequest(url: url)
+            request.httpMethod  = "GET"
+            request.addValue("Bearer \(token)", forHTTPHeaderField: HeaderField.authorization)
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let _ = error {
+                    print("start playback: error")
+                    completed(.failure(.requestError))
+                    return }
+                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                    print("getSongDetails Error")
+                    completed(.failure(.invalidResponse))
+                    return }
+                
+                guard let data = data else {
+                    print("start playback: data")
+                    completed(.failure(.invalidData))
+                    return }
+                
+                do {
+                    let decoder                 = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let spotifyId  = try decoder.decode(SpotifyUserModel.self, from: data)
+                    
+                    print("fetch user profile")
+                    completed(.success(spotifyId.id))
+                    return
+                } catch {
+                    print("getNewTrackRequest: catch")
+                    completed(.failure(.decodingError))
+                }
+            }
+            task.resume()
+    }
+    
+    func getUserPlaylists(pageNumber: Int, completed: @escaping (Result<[PlaylistViewModel], NetworkError>) -> Void){
+        let limit = 20
+        let offset = pageNumber * limit
+        
+        self.getRefreshToken { (token) in
+            guard let token = token else { return }
+            self.getUserId(token: token) { (res) in
+                switch res{
+                case .success(let userId):
+                    guard let url = URL(string: "\(SpotifyAPI.baseURL)users/\(userId)/playlists?limit=\(limit)&offset=\(offset)") else {return}
+//                    guard let url = URL(string: "\(SpotifyAPI.baseURL)me/playlists?limit=\(limit)") else {return}
+                    var request         = URLRequest(url: url)
+                    request.httpMethod  = "GET"
+                    request.addValue("Bearer \(token)", forHTTPHeaderField: HeaderField.authorization)
+                    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                        if let _ = error {
+                            print("start playback: error")
+                            completed(.failure(.requestError))
+                            return }
+                        guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                            print("getSongDetails Error")
+                            completed(.failure(.invalidResponse))
+                            return }
+                        
+                        guard let data = data else {
+                            print("start playback: data")
+                            completed(.failure(.invalidData))
+                            return }
+                        
+                        do {
+                            let decoder                 = JSONDecoder()
+                            decoder.keyDecodingStrategy = .convertFromSnakeCase
+                            let playlistData                  = try decoder.decode(Playlists.self, from: data)
+                            let playlistDetails = playlistData.items.compactMap({ item in
+                                PlaylistViewModel(name: item.name!, imgURL: item.images?[0].url, playlistID: item.id ?? "")
+                            })
+                            
+                            print("fetch song details")
+                            completed(.success(playlistDetails)); return
+                        } catch {
+                            print("getNewTrackRequest: catch")
+                            completed(.failure(.decodingError))
+                        }
+                    }
+                    task.resume()
+                case .failure(let err):
+                    print("Error getting user id: \(err.localizedDescription)")
+                    completed(.failure(err))
+                }
+            }
+        }
+    }
+    
+    func getFeaturedPlaylists(numberOfPlaylists limit: Int, completed: @escaping (Result<[PlaylistViewModel], NetworkError>) -> Void){
         self.getClientAccessToken { (token) in
             guard let url = URL(string: "\(SpotifyAPI.baseURL)browse/featured-playlists?country=SG&limit=\(limit)") else {return}
             guard let token = token else {return}
@@ -303,7 +396,7 @@ final class SpotifyAuthManager
                     
                     
                     let playlistDetails = playlistData.playlists.items.compactMap({ item in
-                        PlaylistDetails(name: item.name!, imgURL: item.images?[0].url, playlistID: item.id ?? "")
+                        PlaylistViewModel(name: item.name!, imgURL: item.images?[0].url, playlistID: item.id ?? "")
                     })
                     
                     print("fetch song details")
@@ -317,9 +410,12 @@ final class SpotifyAuthManager
         }
     }
     
-    func getPlaylistDetails(playlistID:String, market: String, completed: @escaping (Result<[SongDetails], NetworkError>) -> Void){
+    func getPlaylistDetails(playlistID:String, market: String, pageNumber: Int = 0, completed: @escaping (Result<[SongViewModel], NetworkError>) -> Void){
+        // default limit = 100
+        let limit = 100
+        let offset = pageNumber * limit
         self.getClientAccessToken { (token) in
-        guard let url = URL(string: "\(SpotifyAPI.baseURL)playlists/\(playlistID)/tracks?market=\(market)") else {return}
+        guard let url = URL(string: "\(SpotifyAPI.baseURL)playlists/\(playlistID)/tracks?market=\(market)&limit=\(limit)&offset=\(offset)") else {return}
         guard let token = token else {return}
         var request         = URLRequest(url: url)
         request.httpMethod  = "GET"
@@ -344,7 +440,7 @@ final class SpotifyAuthManager
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
                 let songData                  = try decoder.decode(Tracks.self, from: data)
                 let songDetails = songData.items.compactMap({ item in
-                    SongDetails(songName: item.track?.name ?? "", artist: item.track?.artists[0].name ?? "", image: item.track?.album.images[0].url ?? "", uri: item.track?.uri ?? "")
+                    SongViewModel(songName: item.track?.name ?? "", artist: item.track?.artists[0].name ?? "", image: item.track?.album.images[0].url ?? "", uri: item.track?.uri ?? "")
                 })
                 
                 print("fetch song details")
@@ -397,24 +493,29 @@ final class SpotifyAuthManager
     {
         var cacheKey: NSString?
         if key == "k"{
+            // if no key input, use the url string as the key
             cacheKey = NSString(string: urlString)
         }else{
+            // if theres a key input, use the key input as the key
             cacheKey = NSString(string: key)
         }
 //        let cacheKey    = NSString(string: urlString)
         // here we check if image has been cached
-        if let image    = cache.object(forKey: cacheKey!) {completed(image);return }
-        guard let url   = URL(string: urlString) else {completed(defaultImage); return }
-        
+        if let image    = cache.object(forKey: cacheKey!) {print("used cache"); completed(image);return }
+//        else if key != "k"{
+//            print("use default image")
+//            completed(defaultImage); return
+//        }
+        guard let url = URL(string: urlString) else {print("failed to parse url"); completed(defaultImage); return }
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            
             guard let self = self,
                   error == nil,
                   let response    = response as? HTTPURLResponse, response.statusCode == 200,
                   let data        = data,
-                  let image       = UIImage(data: data) else { completed(defaultImage); return }
+                  let image       = UIImage(data: data) else { print("failed to create image"); completed(defaultImage); return }
             
             self.cache.setObject(image, forKey: cacheKey!)
+            print("successfully cached img")
             completed(image)
         }
         task.resume()

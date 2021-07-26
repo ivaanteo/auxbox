@@ -1,0 +1,74 @@
+{
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "DBAC6D98",
+      "localizations" : [
+        {
+          "description" : "Purchase 1 AuxCoin.",
+          "displayName" : "1 AuxCoin",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.ivaanteo.AuxBox.oneCoin",
+      "referenceName" : "1 AuxCoin",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "2B1B7372",
+      "localizations" : [
+        {
+          "description" : "Purchase 5 AuxCoins.",
+          "displayName" : "5 AuxCoins",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.ivaanteo.AuxBox.fiveCoins",
+      "referenceName" : "5 AuxCoins",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "FC40A55B",
+      "localizations" : [
+        {
+          "description" : "Purchase 10 AuxCoins.",
+          "displayName" : "10 AuxCoins",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.ivaanteo.AuxBox.tenCoins",
+      "referenceName" : "10 AuxCoins",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "29.99",
+      "familyShareable" : false,
+      "internalID" : "8F60D378",
+      "localizations" : [
+        {
+          "description" : "Purchase 30 AuxCoins.",
+          "displayName" : "30 AuxCoins",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.ivaanteo.AuxBox.thirtyCoins",
+      "referenceName" : "30 AuxCoins",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 0
+  }
+}

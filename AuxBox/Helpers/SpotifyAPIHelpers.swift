@@ -19,6 +19,9 @@ struct Key{
     static let accessToken = "accessToken"
     static let refreshToken = "refreshToken"
     static let clientAccessToken = "clientAccessToken"
+    static let spotifyId = "spotifyId"
+    static let emailVerificationTime = "emailVerificationTime"
+    static let emailLoginVerified = "emailLoginVerified"
 }
 
 struct HeaderField{
@@ -31,5 +34,5 @@ struct HeaderField{
     static let redirectUri = "redirect_uri"
     static let query = "q"
     static let type = "type"
-    static let scope = "user-top-read%20user-modify-playback-state%20user-read-currently-playing"
+    static let scope = "user-top-read%20user-modify-playback-state%20user-read-currently-playing%20user-read-private%20user-read-email"
 }

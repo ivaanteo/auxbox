@@ -9,7 +9,7 @@ import Foundation
 
 class SpotifySearchManager{
     
-    func retrieveSearchResults(query: String, type: String, token: String, completed: @escaping (Result<[SongDetails], Error>) -> Void) -> Void {
+    func retrieveSearchResults(query: String, type: String, token: String, completed: @escaping (Result<[SongViewModel], Error>) -> Void) -> Void {
         let limit = 15
         // headers
         let requestHeaders: [String:String] = [HeaderField.authorization : "Bearer \(token)",
@@ -38,10 +38,10 @@ class SpotifySearchManager{
                 do {
                     let decoder                     = JSONDecoder()
                     decoder.keyDecodingStrategy     = .convertFromSnakeCase
-                    let songResults = try decoder.decode(SongData.self, from: data)
+                    let songResults = try decoder.decode(SongModel.self, from: data)
                     
                     let songDetails = songResults.tracks.items.compactMap({ item in
-                        SongDetails(songName: item.name!,
+                        SongViewModel(songName: item.name!,
                                     artist: item.artists?[0].name ?? "",
                                     image: item.album?.images[0].url ?? "",
                                     uri: item.uri ?? "")

@@ -9,7 +9,7 @@ import UIKit
 class QueueViewController: UIViewController{
     var hasSetPointOrigin = false
     var pointOrigin: CGPoint?
-    var song:SongDetails?{
+    var song:SongViewModel?{
         didSet{
             if let imgURL = song?.image{
 //                if let url = URL(string: imgURL){

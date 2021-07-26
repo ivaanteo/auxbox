@@ -34,20 +34,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
     }
     
     // WANT TO REMOVE THIS
-    var locationVC: LocationViewController{
-        get{
-//            if homeVC.navLocVC.topViewController is LocationViewController{
-//                return homeVC.navLocVC.topViewController as! LocationViewController
-//            }
+//    var locationVC: LocationViewController{
+//        get{
+////            if homeVC.navLocVC.topViewController is LocationViewController{
+////                return homeVC.navLocVC.topViewController as! LocationViewController
+////            }
+////
 //
-            
-//            if let locationVC = homeVC.navLocVC.topViewController as! LocationViewController{
-//                return locationVC
-//            }
-            
-            return homeVC.navLocVC.children[0] as! LocationViewController
-        }
-    }
+////            if let locationVC = homeVC.navLocVC.topViewController as! LocationViewController{
+////                return locationVC
+////            }
+//
+//
+//
+//            return homeVC.navLocVC.children[0] as! LocationViewController
+//        }
+//    }
     
     var window: UIWindow?
     
@@ -60,15 +62,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
     }()
     
     lazy var locationManager: CLLocationManager = {
+        
+        // singleton
         let locationManager = CLLocationManager()
-//        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
         locationManager.delegate = self
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.showsBackgroundLocationIndicator = true
-        
-//        locationManager.activityType = .automotiveNavigation
-//        locationManager.pausesLocationUpdatesAutomatically = true
         return locationManager
     }()
     
@@ -111,8 +111,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
         } else if let errorDescription = parameters?[SPTAppRemoteErrorDescriptionKey] {
             homeVC.presentAlert(title: "Oops, something went wrong!", message: errorDescription)
         }
-        
-        
     }
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
@@ -172,31 +170,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
         // here we connect
         // get location, save to firebase
         
-        if homeVC.navLocVC.topViewController is LocationViewController{
-            locationVC.finishCreatingRoom()
-            print("executes LocationVC.finishCreatingRoom")
-        }
-        
         guard let navLocVC = tabController.presentedViewController as? UINavigationController else {
             // likely this will pass because all presented view controllers are navigation controllers
             return }
         guard let locVC = navLocVC.topViewController as? LocationViewController else {
+            // occurs when user has an active room on login
             print("not location vc")
             return }
         locVC.finishCreatingRoom()
-        
-        
-        
-//        if homeVC.navLocVC.topViewController is LocationViewController && !firstLoad{
-//            locationVC.finishCreatingRoom()
-//            print("executes LocationVC.finishCreatingRoom")
-//        }else{
-//            firstLoad=false
-//        }
-        
-//        rootViewController.appRemoteConnected()
-//        locationViewController.appRemoteConnected()
-        print("app remote did establish Connection")
     }
 
     func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) {

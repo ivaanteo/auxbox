@@ -193,7 +193,7 @@ class LocationViewController:UIViewController{
         SpotifyAuthManager.shared.getSongDetails(trackURI: playerState.track.uri) { [weak self] result in
                 switch result{
                 case .success(let currentTrack):
-                    var room: Room?
+                    var room: RoomModel?
                     guard let uid = Auth.auth().currentUser?.uid else {print("error getting uid"); return }
                     
                     DispatchQueue.main.async {
@@ -201,7 +201,7 @@ class LocationViewController:UIViewController{
                         if let location = self?.locationManager.location{
                             let coordinates = location.coordinate
                             let hash = GFUtils.geoHash(forLocation: coordinates)
-                            room = Room(roomName: roomName,
+                            room = RoomModel(roomName: roomName,
                                             currentQueue: [],
                                             nowPlaying: currentTrack,
                                             users: [uid],
@@ -213,7 +213,7 @@ class LocationViewController:UIViewController{
                                             )
                             DatabaseManager.shared.batchStartActiveRoom(room: room!)
                         }else{
-                            room = Room(roomName: roomName,
+                            room = RoomModel(roomName: roomName,
                                             currentQueue: [],
                                             nowPlaying: currentTrack,
                                             users: [uid],
@@ -336,7 +336,7 @@ class LocationViewController:UIViewController{
         showActivityIndicator(activityView: loadingSpinner)
         DatabaseManager.shared.fetchData(collection: K.FStore.roomsCollection,
                                          document: auxCode,
-                                         type: Room.self) { res in
+                                         type: RoomModel.self) { res in
             switch res{
             case .success(let room):
                 DatabaseManager.shared.batchJoinRoom(auxCode: auxCode, room: room, exitRoom: false) { err in
@@ -532,6 +532,7 @@ class LocationViewController:UIViewController{
         joinRoomLabel.setupLabel(displayText: "Join a room", fontSize: 24)
         joinRoomDescLabel.setupLabel(displayText: "Enter the 6 digit aux code!", fontSize: 18)
         joinRoomTextField.setupTextField(placeholderText: "eg. A1B2C3", width: view.frame.width*0.8)
+        joinRoomTextField.autocapitalizationType = .allCharacters
         joinRoomButton.setupTransparentButton(btnTitle: "Join", bgAlpha: 0.5, fontSize: 16, width: view.frame.width*0.8)
         joinRoomButton.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
         setupCardStackView(joinRoomStackView,

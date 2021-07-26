@@ -26,7 +26,7 @@ class ProfileViewController:UIViewController{
     
     //Buttons
     let logoutButton = NextButton()
-    let connectSpotifyButton = NextButton()
+    let purchaseCoinsButton = NextButton()
     let transactionsButton = NextButton()
     
     let profilePictureView = UIImageView()
@@ -34,32 +34,17 @@ class ProfileViewController:UIViewController{
     
     let nameLabel = UILabel()
     let profileContainerView = UIView()
-    let editProfileButton = UILabel()
+    let editProfileButton = UIButton()
     let creditsLabel = UILabel()
     let detailsView = UIView()
     
+    private var loadingSpinner = UIActivityIndicatorView()
     
-    
-    var userDetails: UserDetails?{
-        didSet{
-            if let imageURL = userDetails?.profilePictureURL{
-                print("imageURL \(imageURL)")
-                let cacheKey = NSString(string: imageURL)
-                if let img = cache.object(forKey: cacheKey){
-                    DispatchQueue.main.async {
-                        self.profilePictureView.image = img
-                    }
-                }
-                DispatchQueue.main.async {
-                    self.nameLabel.text = self.userDetails!.name
-                    self.creditsLabel.text = "\(self.userDetails!.credits)"
-                }
-            }
-        }
+    @objc func editProfileTapped(){
+        let editProfileVC = SetupProfileViewController()
+        editProfileVC.isSettingUp = false
+        navigationController?.pushViewController(editProfileVC, animated: true)
     }
-    
-    
-    //    let safariVC = SFSafariViewController()
     
     @objc func logoutTapped(sender: UIButton!) {
         // ask if you're sure want to do this using uialert
@@ -69,20 +54,27 @@ class ProfileViewController:UIViewController{
             try firebaseAuth.signOut()
         } catch let signOutError as NSError {
             print ("Error signing out: %@", signOutError)
+            return
         }
+        
+        // remove local storage is auth
+        PersistenceManager.setEmailLoginVerified(loggedIn: false)
+        DatabaseManager.shared.user = nil
+        DatabaseManager.shared.roomDetails = nil
         showLoginPage()
     }
     
-    @objc func connectSpotifyTapped(sender: UIButton!) {
-        guard let url = URL(string: "\(SpotifyAPI.accountURL)authorize?client_id=\(SpotifyAPI.clientID)&response_type=code&redirect_uri=\(SpotifyAPI.redirectURI)&scope=\(HeaderField.scope)") else {
-            print("error, failed to authorize spotify")
-            return
+    @objc func purchaseCoinsButtonTapped(sender: UIButton!){
+        let layout = UICollectionViewFlowLayout()
+        let purchaseCoinsViewController = PurchaseCoinsCollectionViewController(collectionViewLayout: layout)
+        purchaseCoinsViewController.onDismiss = {
+            guard let user = DatabaseManager.shared.user else { return }
+            DispatchQueue.main.async {
+                self.creditsLabel.text = "\(user.credits)"
+            }
         }
-        // i dont want to present safari VC  when you have connected already
-        // check whether there's a userdefaults saved
-        // if there is, do nothing, or grey out the button
-        // if there isnt then present safari vc
-        presentSafariVC(with: url)
+//        navigationController?.pushViewController(purchaseCoinsViewController, animated: true)
+        present(purchaseCoinsViewController, animated: true, completion: nil)
     }
     
     @objc func transactionsTapped(sender: UIButton!){
@@ -97,35 +89,31 @@ class ProfileViewController:UIViewController{
         logoutButton.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         
-        connectSpotifyButton.setupNextButton(title: "Connect Spotify", fontSize: 16, width: buttonWidth, height: buttonHeight)
-        connectSpotifyButton.addTarget(self, action: #selector(connectSpotifyTapped), for: .touchUpInside)
-        connectSpotifyButton.translatesAutoresizingMaskIntoConstraints = false
+        purchaseCoinsButton.setupNextButton(title: "Purchase Coins", fontSize: 16, width: buttonWidth, height: buttonHeight)
+        purchaseCoinsButton.addTarget(self, action: #selector(purchaseCoinsButtonTapped), for: .touchUpInside)
+        purchaseCoinsButton.translatesAutoresizingMaskIntoConstraints = false
         
         transactionsButton.setupNextButton(title: "Transactions", fontSize: 16, width: buttonWidth, height: buttonHeight)
         transactionsButton.addTarget(self, action: #selector(transactionsTapped), for: .touchUpInside)
         transactionsButton.translatesAutoresizingMaskIntoConstraints = false
         
-//        fetchUserData()
-//        profilePictureView.frame = CGRect(x: 0, y: 0, width: profilePictureSize, height: profilePictureSize)
-        profilePictureView.frame.size = CGSize(width: profilePictureSize, height: profilePictureSize)
-//        frame = CGRect(origin: view.center, size: CGSize(width: profilePictureSize, height: profilePictureSize))
-        profilePictureView.tintColor = UIColor(named: K.Colours.orange)
-        profilePictureView.layer.cornerRadius = CGFloat(profilePictureSize) / 2
-        profilePictureView.addCircleGradientBorder(lineWidth: 10)
-        profilePictureView.contentMode = .scaleAspectFit
-        //        profilePictureView.layer.masksToBounds = true
+//        profilePictureView.frame.size = CGSize(width: profilePictureSize, height: profilePictureSize)
+//        profilePictureView.tintColor = UIColor(named: K.Colours.orange)
+//        profilePictureView.layer.cornerRadius = CGFloat(profilePictureSize) / 2
+//        profilePictureView.contentMode = .scaleAspectFit
+//        profilePictureView.clipsToBounds = true
+        profilePictureView.cropCircle(width: profilePictureSize)
+        profilePictureView.addCircleGradientBorder()
         
-        profilePictureView.clipsToBounds = true
-//        profilePictureView.translatesAutoresizingMaskIntoConstraints = false
-        
-//        view.addSubview(profilePictureView)
         profileContainerView.addSubview(profilePictureView)
         profileContainerView.translatesAutoresizingMaskIntoConstraints = false
         profileContainerView.widthAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
         profileContainerView.heightAnchor.constraint(equalToConstant: CGFloat(profilePictureSize)).isActive = true
         
         nameLabel.setupLabel(displayText: "", fontSize: 24, overrideText: false)
-        editProfileButton.setupLabel(displayText: "Edit Profile", fontSize: 16, textColour: UIColor(named: K.Colours.offWhite)!)
+//        editProfileButton.setupLabel(displayText: "Edit Profile", fontSize: 16, textColour: UIColor(named: K.Colours.offWhite)!)
+        editProfileButton.setupUnderlineTextButton(btnTitle: "Edit Profile", fontSize: 16)
+        editProfileButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editProfileTapped)))
         creditsLabel.setupLabel(displayText: "", fontSize: 16, textColour: UIColor(named: K.Colours.offWhite)!, overrideText: false)
         
         setupDetailsView()
@@ -139,7 +127,22 @@ class ProfileViewController:UIViewController{
 //        profilePictureView.topAnchor.constraint(equalTo: view.topAnchor, constant: 100).isActive = true
 //        profilePictureView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         
+//        guard let user = DatabaseManager.shared.user else { return }
+//        self.showActivityIndicator(activityView: loadingSpinner)
+//        updateProfileImg(userDetails: user, profilePictureView: profilePictureView, loadingSpinner: loadingSpinner)
+//        updateProfileImg(userDetails: user, )
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        guard let user = DatabaseManager.shared.user else { return }
+        DispatchQueue.main.async {
+            self.showActivityIndicator(activityView: self.loadingSpinner)
+            self.nameLabel.text = user.name
+            self.creditsLabel.text = "\(user.credits)"
+            self.updateProfileImg(userDetails: user, profilePictureView: self.profilePictureView, loadingSpinner: self.loadingSpinner)
+        }
+    }
+    
     
     fileprivate func setupDetailsView(){
         detailsView.addSubview(nameLabel)
@@ -174,7 +177,7 @@ class ProfileViewController:UIViewController{
         stackView.spacing = 20
         stackView.addArrangedSubview(profileContainerView)
         stackView.addArrangedSubview(detailsView)
-        stackView.addArrangedSubview(connectSpotifyButton)
+        stackView.addArrangedSubview(purchaseCoinsButton)
         stackView.addArrangedSubview(transactionsButton)
         stackView.addArrangedSubview(logoutButton)
         view.addSubview(stackView)
@@ -197,87 +200,4 @@ class ProfileViewController:UIViewController{
         nextButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
     }
     
-    func showLoginPage(){
-        DispatchQueue.main.async {
-            let navController = UINavigationController(rootViewController: LoginViewController())
-            //            let loginVC = LoginViewController()
-            navController.modalPresentationStyle = .fullScreen
-            self.present(navController, animated: true, completion: nil)
-        }
-    }
-    
-    // Spotify Connect
-    private func presentSafariVC(with url: URL)
-    {
-        let safariVC = SFSafariViewController(url: url)
-        safariVC.preferredControlTintColor  = UIColor(named: K.Colours.orange)
-        safariVC.preferredBarTintColor      = .white
-        safariVC.delegate                   = self
-        safariVC.modalPresentationStyle = .currentContext
-        present(safariVC, animated: true)
-    }
-    
-    func authorizeFirstTimeUser(with authCode: String)
-    {
-        // if can't get request token --> auth user
-        // get token from the URL: you might need to change your index here
-        //        let index = url.index(url.startIndex, offsetBy: 33)
-        //        let token = url.suffix(from: index)
-        //        print("token:", token)
-        
-        SpotifyAuthManager.shared.completeAuthorizeRequest(with: authCode) { results in
-            guard let accessToken = results else {
-                print("failed to authorize")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                //update ui
-                print(accessToken, "got the first time user access token")
-                self.dismiss(animated: true, completion: nil)
-            }
-        }
-    }
-    
-    
 }
-
-extension ProfileViewController:SFSafariViewControllerDelegate{
-    func safariViewController(_ controller: SFSafariViewController, initialLoadDidRedirectTo URL: URL) {
-        let currentURL = URL.absoluteString
-        if currentURL.contains("\(SpotifyAPI.redirectURL)?code="){
-            // check if theres a refresh token
-            if PersistenceManager.retrieveRefreshToken() == "" {
-                // no refresh token, first time opening app
-                // means you gotta get an ACCESS TOKEN, rather than a new refresh token
-                let endpoint = String(currentURL.split(separator: "=")[1])
-                self.authorizeFirstTimeUser(with: endpoint)
-                
-                // create randomised auxcode and check it doesnt exist in db
-//                let auxCode = DatabaseManager.shared.getVerifiedAuxCode()
-                // save into database
-//                DatabaseManager.shared.saveAuxCode(user: Auth.auth().currentUser!, auxCode: auxCode)
-                
-            } else {
-                // there's a refresh token saved in userdefaults
-                // getRefreshToken will save it as well
-                SpotifyAuthManager.shared.getRefreshToken() { results in
-                    // results means the completion handler "completed"
-                    guard let refreshToken = results else {
-                        print("failed to get refresh token")
-                        return
-                    }
-                    print("access token: ", PersistenceManager.retrieveAccessToken())
-                    print("refresh token: ", refreshToken)
-                    // cache this token here
-                    // dismiss safari when done
-                    DispatchQueue.main.async {
-                        self.dismiss(animated: true, completion: nil)
-                    }
-                }
-            }
-        }
-        
-    }
-}
-

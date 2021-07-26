@@ -16,7 +16,7 @@ extension UIImageView{
         self.layer.shadowRadius = 3
     }
     
-    func addCircleGradientBorder(lineWidth: CGFloat = 2) {
+    func addCircleGradientBorder(lineWidth: CGFloat = 10) {
         let gradientLayer = Colors().gl
 //        gradientLayer?.frBRame =  CGRect(origin: CGPoint.zero, size: bounds.size)
             gradientLayer!.frame = bounds
@@ -32,6 +32,14 @@ extension UIImageView{
             gradientLayer!.mask = shape
             layer.insertSublayer(gradientLayer!, at: 0)
         }
+    
+    func cropCircle(width: CGFloat){
+        self.frame.size = CGSize(width: width, height: width)
+        self.tintColor = UIColor(named: K.Colours.orange)
+        self.layer.cornerRadius = CGFloat(width) / 2
+        self.contentMode = .scaleAspectFit
+        self.clipsToBounds = true
+    }
     
     func roundCorners(corners: UIRectCorner, radius: CGFloat) {
             let path = UIBezierPath(roundedRect: bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))

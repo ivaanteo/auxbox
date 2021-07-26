@@ -11,13 +11,18 @@ class TransactionsViewController: UIViewController{
     var segmentedControlTabs = ["As Host", "As Guest"]
     var segmentedControl: UISegmentedControl!
     var tableView: UITableView!
-    var transactionList = [TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
-                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
-                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
-                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
-                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson")]
+//    var transactionList = [TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
+//                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
+//                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
+//                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson"),
+//                           TransactionViewModel(date: "31 Jul 2021", songName: "Billy Jean", artist: "Michael Jackson")]
     var hostTxnList = [TransactionViewModel]()
     var guestTxnList = [TransactionViewModel]()
+    let errorLabel = UILabel()
+    
+    let hostErrorText = "Oops, looks like you haven't earned any AuxCoins from hosting rooms."
+    let guestErrorText = "No AuxCoins transacted. Try out premium queue to get started."
+    let loadingSpinner = UIActivityIndicatorView()
     
     override func viewDidLoad(){
         super.viewDidLoad()
@@ -25,29 +30,51 @@ class TransactionsViewController: UIViewController{
         view.backgroundColor = UIColor(named: "bgColour")
         layoutSegmentedControl()
         layoutTableView()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        // fetch
+        showActivityIndicator(activityView: loadingSpinner)
         getTransactions(segmentedControlIndex: 0)
         getTransactions(segmentedControlIndex: 1)
     }
+    
     
     func getTransactions(segmentedControlIndex: Int){
         DatabaseManager.shared.fetchTransactions(isHost: segmentedControlIndex==0) { (res) in
             switch res{
             case .success(let txnList):
+                
                 if segmentedControlIndex == 0{
                     self.hostTxnList = txnList
                 }else{
                     self.guestTxnList = txnList
                 }
                 DispatchQueue.main.async {
+                    // on first load, want to update error message
+                    // check if current tab is that of what's being called
+                    // this prevents running twice
+                    if self.segmentedControl.selectedSegmentIndex == segmentedControlIndex{
+                        if self.segmentedControl.selectedSegmentIndex == 0 && self.hostTxnList.isEmpty{
+                            self.errorLabel.setupLabel(displayText: self.hostErrorText, fontSize: 24, centerAlign: true)
+                            self.tableView.backgroundView = self.errorLabel
+                        }else if self.segmentedControl.selectedSegmentIndex == 1 && self.hostTxnList.isEmpty{
+                            self.errorLabel.setupLabel(displayText: self.guestErrorText, fontSize: 24, centerAlign: true)
+                            self.tableView.backgroundView = self.errorLabel
+                        }else{
+                            // is not empty
+                            // set to none in case user clicks on one of the tabs, which triggers the error message
+                            self.tableView.backgroundView = .none
+                        }
+                        if self.loadingSpinner.isAnimating{
+                            self.hideActivityIndicator(activityView: self.loadingSpinner)
+                        }
+                    }
                     self.tableView.reloadData()
                 }
             case .failure(let err):
-                print("failed")
-                self.showAlert(title: "Oops", message: "Failed to retrived transactions \(err.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Oops", message: "Failed to retrived transactions \(err.localizedDescription)")
+                    if self.loadingSpinner.isAnimating{
+                        self.hideActivityIndicator(activityView: self.loadingSpinner)
+                    }
+                }
             }
         }
     }
@@ -56,13 +83,24 @@ class TransactionsViewController: UIViewController{
         if sender.selectedSegmentIndex == 1{
             DispatchQueue.main.async {
                 sender.selectedSegmentTintColor = UIColor(named: K.Colours.orange)
+                if !self.guestTxnList.isEmpty{
+                    self.tableView.backgroundView = .none
+                }else{
+                    self.errorLabel.text = self.guestErrorText
+                    self.tableView.backgroundView = self.errorLabel
+                }
                 self.tableView.reloadData()
-//                self.updateTableView(segmentedControlIndex: sender.selectedSegmentIndex)
             }
             
         }else{
             DispatchQueue.main.async {
                 sender.selectedSegmentTintColor = UIColor(named: K.Colours.purple)
+                if !self.hostTxnList.isEmpty{
+                    self.tableView.backgroundView = .none
+                }else{
+                    self.errorLabel.text = self.hostErrorText
+                    self.tableView.backgroundView = self.errorLabel
+                }
                 self.tableView.reloadData()
 //                self.updateTableView(segmentedControlIndex: sender.selectedSegmentIndex)
             }
@@ -78,9 +116,9 @@ class TransactionsViewController: UIViewController{
         tableView.register(TransactionsTableViewCell.self, forCellReuseIdentifier: TransactionsTableViewCell.cellId)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20).isActive = true
-        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20).isActive = true
+        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         tableView.allowsSelection = false
     }
     

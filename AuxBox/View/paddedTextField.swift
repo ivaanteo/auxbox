@@ -41,7 +41,8 @@ extension PaddedTextField{
         self.heightAnchor.constraint(equalToConstant: 50).isActive = true
         self.layer.cornerRadius = 20
         self.clipsToBounds = true
-        self.placeholder = placeholderText
+//        self.placeholder = placeholderText
+        self.attributedPlaceholder = NSAttributedString.init(string: placeholderText, attributes: [NSAttributedString.Key.font:UIFont.systemFont(ofSize:12)])
         // Set UITextField background colour
         self.backgroundColor = UIColor.white
         // Set UITextField text color

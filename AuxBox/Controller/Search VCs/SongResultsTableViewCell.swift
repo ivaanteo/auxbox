@@ -19,7 +19,7 @@ class SongResultsTableViewCell:UITableViewCell{
 
     static let identifier = "SongResultsCell"
 
-    var song : SongDetails? {
+    var song : SongViewModel? {
         didSet {
             
             if let imgURL = song?.image{

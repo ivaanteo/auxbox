@@ -11,7 +11,7 @@ class SearchResultsViewController:UIViewController{
     var tableCount:Int?
 //    var songData:SongData?
     let tableView = UITableView()
-    var songData: [SongDetails]?{
+    var songData: [SongViewModel]?{
         didSet{
             DispatchQueue.main.async {
                 self.queueSongsTableView.songData = self.songData!
