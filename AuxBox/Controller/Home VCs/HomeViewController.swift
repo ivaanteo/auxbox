@@ -280,16 +280,23 @@ class HomeViewController:UIViewController{
                     let queueList = safeRoom.toQueue
                     if queueList.count > 0{
                         // premium queue
-                        SpotifyAuthManager.shared.queueSongs(with: queueList)
-                        DatabaseManager.shared.didQueueSongs(queueList:queueList)
+                        SpotifyAuthManager.shared.queueSongs(with: queueList){ err in
+                            if err == nil {
+                                DatabaseManager.shared.didQueueSongs(queueList:queueList)
+                            }
+                        }
                     }
                     else if safeRoom.normalQueue.count > 0 && safeRoom.currentQueue.count == 0{
                         // no songs in premium queue,
                         // check if theres a song in normal queue
                         // and no songs in current queue
+                        print("safe room: \(safeRoom)")
                         let songToNormalQueue = safeRoom.normalQueue[0]
-                        SpotifyAuthManager.shared.normalQueueSong(uri: songToNormalQueue)
-                        DatabaseManager.shared.didNormalQueueSong(uri: songToNormalQueue)
+                        SpotifyAuthManager.shared.normalQueueSong(uri: songToNormalQueue){ err in
+                            if err == nil {
+                                DatabaseManager.shared.didNormalQueueSong(uri: songToNormalQueue)
+                            }
+                        }
                     }
                 }
                 // update nowPlaying
@@ -306,44 +313,6 @@ class HomeViewController:UIViewController{
             }
         }
     }
-    
-//    private func updateProfileImg(userDetails: UserDetails) {
-//        guard let photoURL = userDetails.profilePictureURL else {return}
-//        if photoURL.contains("facebook"){
-//            // check if user image is from facebook. if so, make graph request
-//            let graphRequest = GraphRequest(graphPath: "me", parameters: ["fields":"id, email, name, picture.width(480).height(480)"])
-//            graphRequest.start(completionHandler: { (connection, result, error) in
-//                if error != nil {
-//                    self.hideActivityIndicator(activityView: self.loadingSpinner)
-//                    print("Error",error!.localizedDescription)
-//                }
-//                else{
-//                    let field = result! as? [String:Any]
-//                    if let imageURL = ((field!["picture"] as? [String: Any])?["data"] as? [String: Any])?["url"] as? String {
-//                        SpotifyAuthManager.shared.downloadImage(from: imageURL, defaultImage: UIImage(systemName: "person")!, key: photoURL) { (img) in
-//                            DispatchQueue.main.async {
-//                                let imgView = UIImageView(frame: CGRect(x: 0, y: 0, width: 34, height: 34))
-//                                imgView.image = img
-//                                imgView.layer.cornerRadius = imgView.frame.height / 2
-//                                imgView.addCircleGradientBorder()
-//                                self.navigationItem.rightBarButtonItem?.customView?.subviews[0].removeFromSuperview()
-//                                self.navigationItem.rightBarButtonItem?.customView?.addSubview(imgView)
-//                                //                                self.navigationItem.rightBarButtonItem?.customView?.subviews[0]
-//                                //                                self.hideActivityIndicator(activityView: self.loadingSpinner)
-//                            }
-//                        }
-//                    }
-//                    self.hideActivityIndicator(activityView: self.loadingSpinner)
-//                }
-//            })
-//        }else{
-//            SpotifyAuthManager.shared.downloadImage(from: photoURL, defaultImage: UIImage(systemName: "person")!){ (img) in
-//                DispatchQueue.main.async {
-//                    self.profileButton.imageView?.image = img
-//                }
-//            }
-//        }
-//    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -394,17 +363,6 @@ class HomeViewController:UIViewController{
                 }
             }
         })
-        //        self.updateHomeUI(userUID: uid)
-        //        self.reloadInputViews()
-        //        print("connected to auxCode: \(DatabaseManager.connectedToAuxCode)")
-        //        if DatabaseManager.connectedToAuxCode != ""{
-        //
-        //            listenToDatabase()
-        //        }else{
-        //            // on initial load, if no connectToAux
-        //            // should reset only if nowPlayingUI is not this current state
-        //            self.resetNowPlayingUI()
-        //        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -460,14 +418,6 @@ class HomeViewController:UIViewController{
                     switch result{
                     case .success(let room):
                         DatabaseManager.shared.roomDetails = room
-                        // here, ui is being updated. But viewWillAppear also takes care of this
-                        //                        DispatchQueue.main.async {
-                        //                            self.locationButton.titleLabel?.text = room.roomName
-                        //                            self.nowPlayingSubview.song = SongDetails(songName: room.nowPlaying.songName,
-                        //                                                                      artist: room.nowPlaying.artist,
-                        //                                                                      image: room.nowPlaying.image, uri:"")
-                        //                            self.nowPlayingSubview.songsInQueue = room.currentQueue.count
-                        //                        }
                         if auxCode == DatabaseManager.shared.user?.auxCode{
                             if self.appRemote?.authorizeAndPlayURI("") == false {
                                 // The Spotify app is not installed, present the user with an App Store page
@@ -748,6 +698,7 @@ extension HomeViewController: SPTAppRemotePlayerStateDelegate {
         guard var room = DatabaseManager.shared.roomDetails else { return }
         
         // check if song has changed
+        print("result \(room.nowPlaying.uri) \(trackUri) \(room.nowPlaying.uri != trackUri)")
         if room.nowPlaying.uri != trackUri{
             // immediately set this to prevent multiple calls
             room.nowPlaying.uri = trackUri
@@ -760,14 +711,27 @@ extension HomeViewController: SPTAppRemotePlayerStateDelegate {
                         // get the count
                         // if count == 1 here, meaning that its bout to be 0,
                         
-                        // we wanna queue the song from normal queue and remove it
-                        if room.normalQueue.count > 0 && room.currentQueue.count == 1 {
-                            let songToNormalQueue = room.normalQueue[0]
-                            SpotifyAuthManager.shared.normalQueueSong(uri: songToNormalQueue)
-                            room.normalQueue.remove(at: 0)
-                            room.currentQueue.append(songToNormalQueue)
-                        }
+                        // IMPORTANT: DON'T NEED TO QUEUE SONG HERE
+                        // DATABASE LISTENER WILL QUEUE!
+                        // WE USE THIS SIMPLY TO UPDATE UI!!! OK
+                        
+//                        if room.normalQueue.count > 0 && room.currentQueue.count == 1 {
+//                            let songToNormalQueue = room.normalQueue[0]
+                            // put this if statement here just to test
+//                            if room.nowPlaying.uri != trackUri{
+//                                SpotifyAuthManager.shared.normalQueueSong(uri: songToNormalQueue){err in
+//                                    print("normal queued song")
+//                                    if err == nil{
+//                                        room.normalQueue.remove(at: 0)
+//                                        room.currentQueue.append(songToNormalQueue)
+//                                    }
+//                                }
+//                            }
+//                        }
                         room.currentQueue.remove(at: 0)
+                    }else{
+                        // re-queue song because spoiled
+                        
                     }
                     //this updates both global variable and database
                     //                        DatabaseManager.shared.startActiveRoom(room: room)

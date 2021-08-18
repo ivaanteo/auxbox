@@ -56,7 +56,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.ivaanteo.AuxBox.thirtyCoins",
+      "productID" : "com.ivaanteo.AuxBox.thirtyCoin",
       "referenceName" : "30 AuxCoins",
       "type" : "Consumable"
     }

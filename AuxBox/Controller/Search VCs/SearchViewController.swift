@@ -14,18 +14,9 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchC
     let spotifySearchManager = SpotifySearchManager()
     let searchBar = UISearchBar()
     var playlistCollectionView: UICollectionView!
-    //    var playlistData = [PlaylistViewModel(name: "Vibe", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Yea", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA"),
-    //                        PlaylistViewModel(name: "Softly", imgURL: "https://i.scdn.co/image/ab67706f0000000373f5d3378cc482524b1cfbbf", playlistID: "37i9dQZF1DX8OCw6EqwHPA")]
     var playlistData = [PlaylistViewModel]()
     var isFetchingPlaylist = false
-    var pageNumber = 1
+    var pageNumber = 0
     var loadedAllPlaylists = false
     
     override func viewDidLoad() {
@@ -83,8 +74,6 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchC
             print("error, failed to authorize spotify")
             return
         }
-//        presentSafarisVC(with: url)
-        
         let vc = WebKitViewController(url: url, title: "Connect to Spotify", authorizeUser: authorizeFirstTimeUser)
         let navVC = UINavigationController(rootViewController: vc)
         present(navVC, animated: true, completion: nil)

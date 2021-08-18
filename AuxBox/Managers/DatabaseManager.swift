@@ -428,7 +428,9 @@ class DatabaseManager{
     func didNormalQueueSong(uri: String){
         guard let auxCode = DatabaseManager.shared.user?.auxCode else {return}
         let roomRef = self.db.collection(K.FStore.roomsCollection).document(auxCode)
-        guard let currentQueue = DatabaseManager.shared.roomDetails?.currentQueue else { return }
+        guard var currentQueue = DatabaseManager.shared.roomDetails?.currentQueue else { return }
+        currentQueue.append(uri)
+        // this updates the current queue, removes from normal queue
         roomRef.updateData(["currentQueue" : currentQueue, "normalQueue" : FieldValue.arrayRemove([uri])])
     }
     

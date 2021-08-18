@@ -15,6 +15,9 @@ public struct RoomModel : Codable{
     // just note their uid -- is this even necessary?
     var users:[String]
     var toQueue:[String]
+    // normal queue is songs that haven't been queued
+    // problem is that upon queueing, song will be removed
+    // need a new variable to hold a queued song? or just not remove it? or put it in premium queue
     var normalQueue:[String]
     var geohash: String?
     var lat: Double?

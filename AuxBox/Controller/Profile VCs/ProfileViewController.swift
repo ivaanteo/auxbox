@@ -28,6 +28,7 @@ class ProfileViewController:UIViewController{
     let logoutButton = NextButton()
     let purchaseCoinsButton = NextButton()
     let transactionsButton = NextButton()
+    let disconnectSpotify = NextButton()
     
     let profilePictureView = UIImageView()
     let stackView = UIStackView()
@@ -82,6 +83,11 @@ class ProfileViewController:UIViewController{
         navigationController?.pushViewController(transactionsVC, animated: true)
     }
     
+    @objc func disconnectSpotifyTapped(sender: UIButton!){
+        PersistenceManager.disconnectSpotify()
+        showAlert(title: "Success", message: "You have disconnected your spotify")
+    }
+    
     override func viewDidLoad() {
         view.backgroundColor = UIColor(named: "bgColour")
 //        setupNextButton(logoutButton, "Log Out")
@@ -96,6 +102,10 @@ class ProfileViewController:UIViewController{
         transactionsButton.setupNextButton(title: "Transactions", fontSize: 16, width: buttonWidth, height: buttonHeight)
         transactionsButton.addTarget(self, action: #selector(transactionsTapped), for: .touchUpInside)
         transactionsButton.translatesAutoresizingMaskIntoConstraints = false
+        
+//        disconnectSpotify.setupNextButton(title: "Disconnect Spotify", fontSize: 16, width: buttonWidth, height: buttonHeight)
+//        disconnectSpotify.addTarget(self, action: #selector(disconnectSpotifyTapped), for: .touchUpInside)
+//        disconnectSpotify.translatesAutoresizingMaskIntoConstraints = false
         
 //        profilePictureView.frame.size = CGSize(width: profilePictureSize, height: profilePictureSize)
 //        profilePictureView.tintColor = UIColor(named: K.Colours.orange)
@@ -141,6 +151,12 @@ class ProfileViewController:UIViewController{
             self.creditsLabel.text = "\(user.credits)"
             self.updateProfileImg(userDetails: user, profilePictureView: self.profilePictureView, loadingSpinner: self.loadingSpinner)
         }
+        if PersistenceManager.retrieveRefreshToken() == ""{
+            disconnectSpotify.isHidden = true
+        }else{
+            // need this case to account user connecting spotify halfway
+            disconnectSpotify.isHidden = false
+        }
     }
     
     
@@ -179,6 +195,7 @@ class ProfileViewController:UIViewController{
         stackView.addArrangedSubview(detailsView)
         stackView.addArrangedSubview(purchaseCoinsButton)
         stackView.addArrangedSubview(transactionsButton)
+        stackView.addArrangedSubview(disconnectSpotify)
         stackView.addArrangedSubview(logoutButton)
         view.addSubview(stackView)
     }

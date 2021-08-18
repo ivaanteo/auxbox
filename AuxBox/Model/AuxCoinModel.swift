@@ -10,6 +10,6 @@ import Foundation
 struct AuxCoinModel{
     let id: String
     let value: Double
-    let price: Double
     let imgName: String
+    var price: String?
 }

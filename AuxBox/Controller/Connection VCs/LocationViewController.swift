@@ -13,6 +13,7 @@ import StoreKit
 import SafariServices
 import CoreLocation
 import GeoFire
+import WebKit
 
 class LocationViewController:UIViewController{
     
@@ -120,7 +121,7 @@ class LocationViewController:UIViewController{
         
         guard let enteredAuxCode = joinRoomTextField.text else {return}
         if enteredAuxCode != ""{
-            joinRoom(with: enteredAuxCode)
+            joinRoom(with: enteredAuxCode.capitalized)
             // if so, add user uid to room
             // add auxcode to user
             // else, present alert to tell that room doesn't exist
@@ -129,47 +130,49 @@ class LocationViewController:UIViewController{
         }
     }
     
+    fileprivate func connectToSpotify() {
+        // allow for next step when safari vc presented
+        self.didTapCreateRoom = true
+        print("connecting to spotify")
+        DispatchQueue.main.async {
+            if self.appRemote.isConnected{
+                // we gon play spotify for them
+                print("spotify connected already")
+                self.appRemote.authorizeAndPlayURI("")
+                self.finishCreatingRoom()
+            }else if !self.appRemote.authorizeAndPlayURI(""){
+                // begin auth and connection process
+                // The Spotify app is not installed, present the user with an App Store page
+                self.showAppStoreInstall()
+            }
+        }
+    }
+    
     @objc func createButtonTapped(sender: UIButton!){
         // check if accesstoken exists
         // authenticate if does not...
         if createRoomTextField.text != ""{
-            showActivityIndicator(activityView: loadingSpinner)
+            showActivityIndicator(activityView: loadingSpinner, color: UIColor(named: K.Colours.orange)!)
             //            guard let currentUser = Auth.auth().currentUser else {return}
             
             if PersistenceManager.retrieveRefreshToken() == "" {
                 // no refresh token, first time opening app
                 // means you gotta get an ACCESS TOKEN, rather than a new refresh token
+//                guard let url = URL(string: "\(SpotifyAPI.accountURL)authorize?client_id=\(SpotifyAPI.clientID)&response_type=code&redirect_uri=\(SpotifyAPI.redirectURI)&scope=\(HeaderField.scope)") else {
+//                        hideActivityIndicator(activityView: loadingSpinner)
+//                        print("error, failed to authorize spotify")
+//                    return}
+//                hideActivityIndicator(activityView: loadingSpinner)
+//                presentSafariVC(with: url)
                 guard let url = URL(string: "\(SpotifyAPI.accountURL)authorize?client_id=\(SpotifyAPI.clientID)&response_type=code&redirect_uri=\(SpotifyAPI.redirectURI)&scope=\(HeaderField.scope)") else {
-                        hideActivityIndicator(activityView: loadingSpinner)
-                        print("error, failed to authorize spotify")
-                    return}
-                hideActivityIndicator(activityView: loadingSpinner)
-                presentSafariVC(with: url)
-            }
-            // allow for next step when safari vc presented
-            self.didTapCreateRoom = true
-            if appRemote.isConnected{
-                // we gon play spotify for them
-                appRemote.authorizeAndPlayURI("spotify:track:62vpWI1CHwFy7tMIcSStl8")
-                finishCreatingRoom()
-                
-//                // save room
-//                self.appRemote.playerAPI?.getPlayerState({ (res, err) in
-//                    guard err == nil else { return }
-//                    // get nowPlaying
-//                    let playerState = res as! SPTAppRemotePlayerState
-//                    // save room into firestore
-//                    self.saveRoom(playerState, roomName: self.createRoomTextField.text!)
-//                    self.transitionToCreatedVC()
-//                })
-                
-//                transitionToCreatedVC()
-            }else{
-                // begin auth and connection process
-                if !appRemote.authorizeAndPlayURI(""){
-                    // The Spotify app is not installed, present the user with an App Store page
-                    showAppStoreInstall()
+                    print("error, failed to authorize spotify")
+                    return
                 }
+                let vc = WebKitViewController(url: url, title: "Connect to Spotify", authorizeUser: authorizeFirstTimeUser)
+                let navVC = UINavigationController(rootViewController: vc)
+                present(navVC, animated: true, completion: nil)
+            }else{
+                connectToSpotify()
             }
         }else{
             showAlert(title: "Oops", message: "Please enter a valid title")
@@ -244,23 +247,25 @@ class LocationViewController:UIViewController{
                 print("failed to authorize")
                 return
             }
-            DispatchQueue.main.async {
-                //update ui
-                print(accessToken, "got the first time user access token")
-                self.dismiss(animated: true, completion: nil)
-            }
+//            DispatchQueue.main.async {
+//                //update ui
+//                print(accessToken, "got the first time user access token")
+//                self.dismiss(animated: true, completion: nil)
+//            }
+            // continue creating room
+            self.connectToSpotify()
         }
     }
     
-    private func presentSafariVC(with url: URL)
-    {
-        let safariVC = SFSafariViewController(url: url)
-        safariVC.preferredControlTintColor  = UIColor(named: K.Colours.orange)
-        safariVC.preferredBarTintColor      = .white
-        safariVC.delegate                   = self
-        safariVC.modalPresentationStyle = .automatic
-        present(safariVC, animated: true)
-    }
+//    private func presentSafariVC(with url: URL)
+//    {
+//        let safariVC = SFSafariViewController(url: url)
+//        safariVC.preferredControlTintColor  = UIColor(named: K.Colours.orange)
+//        safariVC.preferredBarTintColor      = .white
+//        safariVC.delegate                   = self
+//        safariVC.modalPresentationStyle = .automatic
+//        present(safariVC, animated: true)
+//    }
     
     // MARK: - Spotify SDK
     
@@ -276,7 +281,9 @@ class LocationViewController:UIViewController{
     @objc func willEnterForeground() {
         // check that button tapped
         if didTapCreateRoom && !appRemote.isConnected{
-            appRemote.connect()
+            DispatchQueue.main.async {
+                self.appRemote.connect()
+            }
         }
     }
     
@@ -409,32 +416,37 @@ class LocationViewController:UIViewController{
     func finishCreatingRoom(){
         // Check if Spotify Premium
         if didTapCreateRoom{// this prevents first load from calling this
+            print("creating room...")
             showActivityIndicator(activityView: loadingSpinner)
-            appRemote.userAPI?.fetchCapabilities(callback: {[weak self] (res, err) in
-                guard err == nil else {
-                    self?.presentAlert(title: "Error", message: err!.localizedDescription)
-                    return }
-                let capabilities = res as? SPTAppRemoteUserCapabilities
-                if capabilities?.canPlayOnDemand == true{
-                    self?.appRemote.playerAPI?.getPlayerState({ [weak self] (res, err) in
-                        guard err == nil else { return }
-                        // get nowPlaying
-                        let playerState = res as! SPTAppRemotePlayerState
-                        // save room into firestore
-                        self?.saveRoom(playerState, roomName: (self?.createRoomTextField.text)!)
+            DispatchQueue.main.async {
+                self.appRemote.userAPI?.fetchCapabilities(callback: {[weak self] (res, err) in
+                    guard err == nil else {
+                        self?.presentAlert(title: "Error", message: err!.localizedDescription)
+                        return }
+                    let capabilities = res as? SPTAppRemoteUserCapabilities
+                    if capabilities?.canPlayOnDemand == true{
                         DispatchQueue.main.async {
-//                            let lcnManager = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)!.locationManager
-                            if let location = self?.locationManager.location{
-                                DatabaseManager.shared.updateLocation(location: location)
-                            }
-                            self?.locationManager.requestAlwaysAuthorization()
-                            self?.locationManager.startUpdatingLocation()
-                            self?.hideActivityIndicator(activityView: self!.loadingSpinner)
-                            self?.transitionToCreatedVC()
+                            self?.appRemote.playerAPI?.getPlayerState({ [weak self] (res, err) in
+                                guard err == nil else { return }
+                                // get nowPlaying
+                                let playerState = res as! SPTAppRemotePlayerState
+                                // save room into firestore
+                                self?.saveRoom(playerState, roomName: (self?.createRoomTextField.text)!)
+                                DispatchQueue.main.async {
+        //                            let lcnManager = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)!.locationManager
+                                    if let location = self?.locationManager.location{
+                                        DatabaseManager.shared.updateLocation(location: location)
+                                    }
+                                    self?.locationManager.requestAlwaysAuthorization()
+                                    self?.locationManager.startUpdatingLocation()
+                                    self?.hideActivityIndicator(activityView: self!.loadingSpinner)
+                                    self?.transitionToCreatedVC()
+                                }
+                            })
                         }
-                    })
-                }
-            })
+                    }
+                })
+            }
         }
     }
     
@@ -675,17 +687,17 @@ extension LocationViewController: SKStoreProductViewControllerDelegate {
     }
 }
 
-extension LocationViewController:SFSafariViewControllerDelegate{
-    func safariViewController(_ controller: SFSafariViewController, initialLoadDidRedirectTo URL: URL) {
-        let currentURL = URL.absoluteString
-        if currentURL.contains("\(SpotifyAPI.redirectURL)?code="){
-            // check if theres a refresh token
-            if PersistenceManager.retrieveRefreshToken() == "" {
-                // no refresh token, first time opening app
-                // means you gotta get an ACCESS TOKEN, rather than a new refresh token
-                let endpoint = String(currentURL.split(separator: "=")[1])
-                self.authorizeFirstTimeUser(with: endpoint)
-            }
-        }
-    }
-}
+//extension LocationViewController:SFSafariViewControllerDelegate{
+//    func safariViewController(_ controller: SFSafariViewController, initialLoadDidRedirectTo URL: URL) {
+//        let currentURL = URL.absoluteString
+//        if currentURL.contains("\(SpotifyAPI.redirectURL)?code="){
+//            // check if theres a refresh token
+//            if PersistenceManager.retrieveRefreshToken() == "" {
+//                // no refresh token, first time opening app
+//                // means you gotta get an ACCESS TOKEN, rather than a new refresh token
+//                let endpoint = String(currentURL.split(separator: "=")[1])
+//                self.authorizeFirstTimeUser(with: endpoint)
+//            }
+//        }
+//    }
+//}

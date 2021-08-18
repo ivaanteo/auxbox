@@ -45,20 +45,6 @@ class WebKitViewController: UIViewController, WKNavigationDelegate {
     
     @objc func didTapDone(){
         self.dismiss(animated: true, completion: nil)
-//        {
-//            if let safeUrl = self.webView.url?.absoluteString{
-//                if safeUrl.contains("\(SpotifyAPI.redirectURL)?code="){
-//                    var endpoint = String(safeUrl.split(separator: "=")[1])
-//                    endpoint.removeLast(2)
-//                    print("endpoint \(endpoint)")
-//                    DispatchQueue.main.async {
-//                        self.dismiss(animated: true) {
-//                            self.authorize(endpoint)
-//                        }
-//                    }
-//                }
-//            }
-//        }
     }
     
     override func viewDidLayoutSubviews() {

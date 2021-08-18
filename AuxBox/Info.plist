@@ -2,15 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need access to your photos to upload a profile picture.</string>
-	<key>browseNearby</key>
-	<string>We need your location to find nearby rooms.</string>
-	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
-	<dict>
-		<key>browseNearby</key>
-		<string>We need location to find nearby rooms.</string>
-	</dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.ivaanteo-.AuxBox.fetchData</string>
@@ -28,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -49,7 +40,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FacebookAppID</key>
 	<string>2615521258738179</string>
 	<key>FacebookDisplayName</key>
@@ -90,8 +81,15 @@
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We need your location to allow others to find your room!</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>browseNearby</key>
+		<string>We need location to find nearby rooms.</string>
+	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to allow others to find your room!</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photos to upload a profile picture.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -142,5 +140,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>browseNearby</key>
+	<string>We need your location to find nearby rooms.</string>
 </dict>
 </plist>

@@ -27,7 +27,7 @@ class PlaylistViewController : UIViewController{
     let playlistTableView = UITableView()
     var playlistTitle:String?
     var queueSongsTableView: QueueSongsTableView!
-    var pageNumber = 1
+    var pageNumber = 0
     
     var isFetchingSongs = false
     var loadedAllSongs = false

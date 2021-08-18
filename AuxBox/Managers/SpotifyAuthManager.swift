@@ -459,31 +459,45 @@ final class SpotifyAuthManager
     //
     //    }
     
-    func queueSongs(with queueList:[String]){
+    func queueSongs(with queueList:[String], completed: @escaping ((Error?)->())){
         self.getRefreshToken { token in
             guard let token = token else { return }
             for uri in queueList{
-                self.queueSong(uri: uri, token)
+                self.queueSong(uri: uri, token){err in
+                    guard err == nil else {
+                        completed(err)
+                        return }
+                }
+            }
+            completed(nil)
+        }
+    }
+    
+    func normalQueueSong(uri: String, completed: @escaping ((Error?)->())){
+        self.getRefreshToken { (token) in
+            guard let token = token else { return }
+            self.queueSong(uri: uri, token){ err in
+                guard err == nil else {
+                    completed(err)
+                    return }
+                completed(nil)
             }
         }
     }
     
-    func normalQueueSong(uri: String){
-        self.getRefreshToken { (token) in
-            guard let token = token else { return }
-            self.queueSong(uri: uri, token)
-        }
-    }
-    
-    private func queueSong(uri: String,_ token: String){
+    private func queueSong(uri: String,_ token: String, completed: @escaping ((Error?) -> ()) ){
         guard let url = URL(string: "\(SpotifyAPI.baseURL)me/player/queue?uri=\(uri)") else {return}
         var request         = URLRequest(url: url)
         request.httpMethod  = "POST"
         request.addValue("Bearer \(token)", forHTTPHeaderField: HeaderField.authorization)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error            = error { print("queueSong error: \(error)"); return }
-            guard let unwrappedResponse  = response as? HTTPURLResponse else { print("Queue Song Error"); return }
-            print("unwrappedResponse \(unwrappedResponse)")
+            if let error            = error { print("queueSong error: \(error)")
+                completed(error)
+                return }
+            guard (response as? HTTPURLResponse) != nil else { print("Queue Song Error")
+                completed(error)
+                return }
+            completed(nil)
             //            guard let data      = data else { print("start playback: data"); return }
         }
         task.resume()

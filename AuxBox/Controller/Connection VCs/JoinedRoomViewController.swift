@@ -83,7 +83,7 @@ class JoinedRoomViewController:UIViewController{
         roomNameDescLabel.setupLabel(displayText: roomName, fontSize: 28)
         auxCodeLabel.setupLabel(displayText: "Aux code", fontSize: 22)
         auxCodeDescLabel.setupLabel(displayText: auxCode, fontSize: 28)
-        titleText.setupLabel(displayText: "You're connected! Queue some BANGERS yo", fontSize: 36, minLines: 2)
+        titleText.setupLabel(displayText: "You're connected! Queue some BANGERS yo", fontSize: 36, minLines: 3)
         
         setupStackView(roomStackView, headerLabel: roomNameLabel, descLabel: roomNameDescLabel)
         setupStackView(auxStackView, headerLabel: auxCodeLabel, descLabel: auxCodeDescLabel)

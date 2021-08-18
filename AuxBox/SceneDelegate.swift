@@ -172,6 +172,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
         
         guard let navLocVC = tabController.presentedViewController as? UINavigationController else {
             // likely this will pass because all presented view controllers are navigation controllers
+            print("not nav vc")
             return }
         guard let locVC = navLocVC.topViewController as? LocationViewController else {
             // occurs when user has an active room on login
@@ -195,6 +196,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, C
         
         guard let navLocVC = tabController.presentedViewController as? UINavigationController else {
             // likely this will pass because all presented view controllers are navigation controllers
+            print("not nav vc")
             return }
         guard let locVC = navLocVC.topViewController as? LocationViewController else {
             print("not location vc")

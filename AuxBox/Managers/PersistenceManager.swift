@@ -61,6 +61,12 @@ enum PersistenceManager
         }
     }
     
+    static func disconnectSpotify(){
+        defaults.removeObject(forKey: Key.refreshToken)
+        defaults.removeObject(forKey: Key.accessToken)
+        defaults.removeObject(forKey: Key.spotifyId)
+    }
+    
     // Saves access token to userDefaults
     static func saveAccessToken(accessToken: String) -> Void?
     {
